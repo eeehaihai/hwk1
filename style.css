@@ -96,7 +96,7 @@ header {
     margin-left: 10px;
 }
 
-.logo img {
+logo img {
     height: 40px;
     width: auto;
 }
@@ -208,15 +208,58 @@ nav a:hover {
     background-color: #152b5e;
 }
 
+/* 主内容区域样式改进 */
 .main-content {
     display: flex;
     margin-top: 30px;
     margin-bottom: 30px;
+    flex-wrap: wrap; /* 允许在小屏幕上换行 */
 }
 
 .topic-list {
     flex: 3;
     margin-right: 20px;
+    min-width: 0; /* 确保flex子项可以缩小到小于内容宽度 */
+    max-width: 100%; /* 确保在小屏幕上不会溢出 */
+}
+
+/* 解决长文本问题 */
+.topic-card, .comment-item, .topic-detail {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word; /* 在单词之间断行 */
+    hyphens: auto; /* 自动添加连字符 */
+}
+
+.topic-title, .detail-title {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+}
+
+.topic-content {
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.topic-full-content {
+    margin: 20px 0;
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .topic-filter {
@@ -269,6 +312,7 @@ nav a:hover {
     margin-bottom: 15px;
     box-shadow: 0 0 5px rgba(0,0,0,0.05);
     transition: transform 0.2s;
+    cursor: pointer;
 }
 
 .topic-card:hover {
@@ -317,6 +361,9 @@ nav a:hover {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .topic-footer {
@@ -344,6 +391,8 @@ nav a:hover {
 /* 侧边栏样式 */
 .sidebar {
     flex: 1;
+    min-width: 250px; /* 确保侧边栏有最小宽度 */
+    max-width: 100%; /* 确保在小屏幕上不会溢出 */
 }
 
 .sidebar-widget {
@@ -352,6 +401,8 @@ nav a:hover {
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .sidebar-widget h3 {
@@ -724,10 +775,6 @@ input[type="radio"]:checked + .radio-label {
     color: #666;
 }
 
-.topic-card {
-    cursor: pointer;
-}
-
 .search-result-info {
     padding: 10px 15px;
     background-color: #f5f5f5;
@@ -752,6 +799,10 @@ input[type="radio"]:checked + .radio-label {
     margin: 0 0 10px 0;
     color: #333;
     text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .topic-full-content {
@@ -759,6 +810,10 @@ input[type="radio"]:checked + .radio-label {
     line-height: 1.8;
     color: #333;
     white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
 }
 
 .topic-tags {
@@ -842,6 +897,9 @@ input[type="radio"]:checked + .radio-label {
     padding: 15px;
     border-bottom: 1px solid #eee;
     margin-bottom: 10px;
+    word-break: break-word;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .comment-header {
@@ -864,6 +922,9 @@ input[type="radio"]:checked + .radio-label {
     line-height: 1.6;
     margin-bottom: 10px;
     word-break: break-word;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap; /* 保留换行符并允许自动换行 */
 }
 
 .comment-footer {
@@ -898,4 +959,20 @@ input[type="radio"]:checked + .radio-label {
     font-size: 18px;
     color: #333;
     margin-bottom: 15px;
+}
+
+/* 修复小屏幕上的布局问题 */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+    
+    .topic-list {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .sidebar {
+        width: 100%;
+    }
 }

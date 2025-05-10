@@ -146,15 +146,33 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
     
     // 按要求排序
     if ($sortBy === 'newest') {
+        // 按发布时间降序排序
         usort($topics, function($a, $b) {
             return $b['timestamp'] - $a['timestamp'];
         });
     } else if ($sortBy === 'hottest') {
+        // 计算一周内的点赞数并排序
+        $oneWeekAgo = (time() - 7 * 24 * 60 * 60) * 1000; // 一周前的JavaScript时间戳
+        
+        // 计算热度分数 - 对于一周内发布的帖子，其点赞数权重更高
+        foreach ($topics as &$topic) {
+            // 如果是一周内发布的帖子，其点赞数权重为1.5倍
+            if ($topic['timestamp'] >= $oneWeekAgo) {
+                $topic['hotScore'] = $topic['likes'] * 1.5;
+            } else {
+                $topic['hotScore'] = $topic['likes'];
+            }
+        }
+        
+        // 按热度分数降序排序
         usort($topics, function($a, $b) {
-            $scoreA = $b['views'] + $b['likes'] * 2;
-            $scoreB = $a['views'] + $a['likes'] * 2;
-            return $scoreB - $scoreA;
+            return $b['hotScore'] - $a['hotScore'];
         });
+        
+        // 移除临时字段
+        foreach ($topics as &$topic) {
+            unset($topic['hotScore']);
+        }
     } else if ($sortBy === 'featured') {
         $filteredTopics = [];
         foreach ($topics as $topic) {

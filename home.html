@@ -104,26 +104,6 @@
         <div class="container footer-content">
             <div class="footer-links">
                 <div>
-                    <h4>关于我们</h4>
-                    <ul>
-                        <li><a href="#">网站简介</a></li>
-                        <li><a href="#">运营团队</a></li>
-                        <li><a href="#">联系我们</a></li>
-                        <li><a href="#">加入我们</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4>帮助中心</h4>
-                    <ul>
-                        <li><a href="#">使用指南</a></li>
-                        <li><a href="#">常见问题</a></li>
-                        <li><a href="#">用户反馈</a></li>
-                        <li><a href="#">内容规范</a></li>
-                    </ul>
-                </div>
-                
-                <div>
                     <h4>友情链接</h4>
                     <ul>
                         <li><a href="https://www.jlu.edu.cn/" target="_blank">吉林大学官网</a></li>
@@ -205,6 +185,56 @@
             window.location.href = `topic-detail.html?id=${id}`;
         }
         
+        // 话题卡片添加点赞功能
+        function createTopicCard(post) {
+            const topicCard = document.createElement('div');
+            topicCard.className = 'topic-card';
+            
+            // 确保长文本正确截断
+            let contentPreview = post.content;
+            if (contentPreview.length > 200) {
+                // 查找200字符附近的最后一个空格，避免截断单词
+                const lastSpace = contentPreview.substring(0, 250).lastIndexOf(' ');
+                const cutPoint = lastSpace > 180 ? lastSpace : 200;
+                contentPreview = contentPreview.substring(0, cutPoint) + '...';
+            }
+            
+            topicCard.innerHTML = `
+                <div class="topic-header">
+                    <h3 class="topic-title">${post.title}</h3>
+                    <span class="topic-category">${post.categoryName}</span>
+                </div>
+                <div class="topic-meta">
+                    <span class="topic-author">${post.author}</span>
+                    <span class="topic-time">${formatTime(post.timestamp)}</span>
+                    <span class="topic-views">浏览 ${post.views}</span>
+                </div>
+                <div class="topic-content">${contentPreview}</div>
+                <div class="topic-footer">
+                    <div class="topic-stats">
+                        <span class="like-btn" onclick="likeTopicInList('${post.id}', event)">
+                            <span class="like-icon">❤</span> 点赞 <span class="like-count">${post.likes || 0}</span>
+                        </span>
+                        <span>评论 ${post.comments || 0}</span>
+                    </div>
+                    <div class="topic-action">
+                        <a href="topic-detail.html?id=${post.id}">参与讨论</a>
+                    </div>
+                </div>
+            `;
+            
+            // 增加点击查看详情功能
+            topicCard.addEventListener('click', function(e) {
+                // 如果点击的是点赞按钮，不要跳转
+                if (e.target.closest('.like-btn')) {
+                    return;
+                }
+                viewTopic(post.id);
+            });
+            
+            return topicCard;
+        }
+        
         // 加载话题列表
         function loadTopics(category = 'all', sortBy = 'newest') {
             const topicListContainer = document.getElementById('topicListContainer');
@@ -233,36 +263,7 @@
                             
                             // 显示每个帖子
                             posts.forEach(post => {
-                                const topicCard = document.createElement('div');
-                                topicCard.className = 'topic-card';
-                                
-                                topicCard.innerHTML = `
-                                    <div class="topic-header">
-                                        <h3 class="topic-title">${post.title}</h3>
-                                        <span class="topic-category">${post.categoryName}</span>
-                                    </div>
-                                    <div class="topic-meta">
-                                        <span class="topic-author">${post.author}</span>
-                                        <span class="topic-time">${formatTime(post.timestamp)}</span>
-                                        <span class="topic-views">浏览 ${post.views}</span>
-                                    </div>
-                                    <div class="topic-content">${post.content.substring(0, 200)}${post.content.length > 200 ? '...' : ''}</div>
-                                    <div class="topic-footer">
-                                        <div class="topic-stats">
-                                            <span>点赞 ${post.likes}</span>
-                                            <span>评论 ${post.comments}</span>
-                                        </div>
-                                        <div class="topic-action">
-                                            <a href="topic-detail.html?id=${post.id}">参与讨论</a>
-                                        </div>
-                                    </div>
-                                `;
-                                
-                                // 增加点击查看详情功能
-                                topicCard.addEventListener('click', function() {
-                                    viewTopic(post.id);
-                                });
-                                
+                                const topicCard = createTopicCard(post);
                                 topicListContainer.appendChild(topicCard);
                             });
                         } else {
@@ -284,6 +285,38 @@
             };
             
             xhr.send();
+        }
+        
+        // 在列表页点赞话题
+        function likeTopicInList(topicId, event) {
+            event.stopPropagation(); // 阻止事件冒泡，避免触发话题卡片的点击事件
+            
+            const likeBtn = event.currentTarget;
+            const likeCountEl = likeBtn.querySelector('.like-count');
+            
+            // 发送点赞请求到服务器
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'like_topic.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            // 更新显示的点赞数
+                            likeCountEl.textContent = response.likes;
+                        } else {
+                            console.error('点赞失败:', response.message);
+                            alert(response.message || '点赞失败，请稍后再试');
+                        }
+                    } catch (e) {
+                        console.error('解析点赞响应出错:', e);
+                    }
+                }
+            };
+            
+            xhr.send(`topicId=${topicId}`);
         }
         
         // 更新分类统计
@@ -461,40 +494,31 @@
                 
                 // 显示每个帖子
                 filteredPosts.forEach(post => {
-                    const topicCard = document.createElement('div');
-                    topicCard.className = 'topic-card';
-                    
-                    topicCard.innerHTML = `
-                        <div class="topic-header">
-                            <h3 class="topic-title">${post.title}</h3>
-                            <span class="topic-category">${post.categoryName}</span>
-                        </div>
-                        <div class="topic-meta">
-                            <span class="topic-author">${post.author}</span>
-                            <span class="topic-time">${formatTime(post.timestamp)}</span>
-                            <span class="topic-views">浏览 ${post.views}</span>
-                        </div>
-                        <div class="topic-content">${post.content.substring(0, 200)}${post.content.length > 200 ? '...' : ''}</div>
-                        <div class="topic-footer">
-                            <div class="topic-stats">
-                                <span>点赞 ${post.likes}</span>
-                                <span>评论 ${post.comments}</span>
-                            </div>
-                            <div class="topic-action">
-                                <a href="topic-detail.html?id=${post.id}">参与讨论</a>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // 增加点击查看详情功能
-                    topicCard.addEventListener('click', function() {
-                        viewTopic(post.id);
-                    });
-                    
+                    const topicCard = createTopicCard(post);
                     topicListContainer.appendChild(topicCard);
                 });
             });
         }
     </script>
+
+    <style>
+        /* 点赞按钮样式 */
+        .like-btn {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .like-btn:hover {
+            color: #e74c3c;
+        }
+
+        .like-icon {
+            margin-right: 5px;
+            font-size: 14px;
+        }
+    </style>
 </body>
 </html>
