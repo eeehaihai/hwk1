@@ -132,66 +132,71 @@
             const top = document.getElementById('top').checked;
             const disableComment = document.getElementById('disable_comment').checked;
             
-            // 处理图片（这里只存储图片数量，实际项目可能需要存储图片数据）
-            const imageFiles = document.getElementById('images').files;
-            const imageCount = imageFiles.length;
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('content', content);
+            formData.append('tags', tags);
+            formData.append('anonymous', anonymous ? '1' : '0');
+            formData.append('top', top ? '1' : '0');
+            formData.append('disable_comment', disableComment ? '1' : '0');
             
-            // 构建帖子对象
-            const post = {
-                title: title,
-                category: category,
-                content: content,
-                tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-                options: {
-                    anonymous: anonymous,
-                    top: top,
-                    disableComment: disableComment
-                },
-                imageCount: imageCount,
-                timestamp: Date.now(),
-                author: anonymous ? '匿名用户' : getCurrentUser(),
-                views: 0,
-                likes: 0,
-                comments: 0
+            // 发送请求到服务器
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'topics.php', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            // 显示成功消息
+                            const messageEl = document.getElementById('message');
+                            messageEl.innerHTML = '话题发布成功！正在跳转到首页...';
+                            messageEl.className = 'message-box success';
+                            messageEl.style.display = 'block';
+                            
+                            // 延迟跳转到首页
+                            setTimeout(function() {
+                                window.location.href = 'home.html';
+                            }, 1500);
+                        } else {
+                            // 显示错误消息
+                            const messageEl = document.getElementById('message');
+                            messageEl.innerHTML = response.message || '话题发布失败，请稍后再试！';
+                            messageEl.className = 'message-box error';
+                            messageEl.style.display = 'block';
+                        }
+                    } catch (e) {
+                        // 显示错误消息
+                        const messageEl = document.getElementById('message');
+                        messageEl.innerHTML = '服务器响应格式错误，请稍后再试！';
+                        messageEl.className = 'message-box error';
+                        messageEl.style.display = 'block';
+                        console.error('解析响应数据错误:', e);
+                    }
+                } else {
+                    // 显示错误消息
+                    const messageEl = document.getElementById('message');
+                    messageEl.innerHTML = '服务器连接错误，请稍后再试！';
+                    messageEl.className = 'message-box error';
+                    messageEl.style.display = 'block';
+                    console.error('HTTP错误:', xhr.status);
+                }
             };
             
-            // 将标题对应的分类显示名称加入
-            const categoryNames = {
-                'campus_life': '校园生活',
-                'study': '学习交流',
-                'emotion': '情感树洞',
-                'career': '就业考研',
-                'entertainment': '娱乐休闲',
-                'secondhand': '二手交易',
-                'lost_found': '失物招领',
-                'suggestion': '建议反馈',
-                'other': '其他'
-            };
-            post.categoryName = categoryNames[category] || '其他';
-            
-            // 保存到localStorage
-            try {
-                const postId = savePost(post);
-                
-                // 显示成功消息
-                const messageEl = document.getElementById('message');
-                messageEl.innerHTML = '话题发布成功！正在跳转到首页...';
-                messageEl.className = 'message-box success';
-                messageEl.style.display = 'block';
-                
-                // 延迟跳转到首页
-                setTimeout(function() {
-                    window.location.href = 'home.html';
-                }, 1500);
-                
-            } catch (e) {
+            xhr.onerror = function() {
                 // 显示错误消息
                 const messageEl = document.getElementById('message');
-                messageEl.innerHTML = '话题发布失败，请稍后再试！错误: ' + e.message;
+                messageEl.innerHTML = '网络错误，请检查您的连接！';
                 messageEl.className = 'message-box error';
                 messageEl.style.display = 'block';
-                console.error('保存帖子错误:', e);
-            }
+                console.error('网络错误');
+            };
+            
+            xhr.send(formData);
         });
     </script>
 </body>

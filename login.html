@@ -54,20 +54,21 @@
             messageBox.innerHTML = '';
             messageBox.className = 'message-box';
             
-            // 使用AJAX读取用户数据
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            // 使用AJAX发送请求到PHP处理文件
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'users.json', true);
+            xhr.open('POST', 'login.php', true);
             
             xhr.onload = function() {
                 if (xhr.status === 200) {
                     try {
-                        const userData = JSON.parse(xhr.responseText);
-                        const users = userData.users;
+                        const response = JSON.parse(xhr.responseText);
                         
-                        // 检查用户名和密码
-                        const user = users.find(u => u.username === username && u.password === password);
-                        
-                        if (user) {
+                        if (response.success) {
                             // 登录成功
                             messageBox.innerHTML = '登录成功，正在跳转...';
                             messageBox.className = 'message-box success';
@@ -82,7 +83,7 @@
                             }, 1000);
                         } else {
                             // 登录失败
-                            messageBox.innerHTML = '用户名或密码错误，请重试！';
+                            messageBox.innerHTML = response.message || '用户名或密码错误，请重试！';
                             messageBox.className = 'message-box error';
                             messageBox.style.display = 'block';
                         }
@@ -109,7 +110,7 @@
                 console.error('网络错误');
             };
             
-            xhr.send();
+            xhr.send(formData);
         });
     </script>
 </body>

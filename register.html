@@ -11,7 +11,7 @@
 <body>
     <div class="page-container">
         <h1>吉大树洞 - 用户注册</h1>
-        <form action="/register" method="POST" id="registerForm" onsubmit="return validateForm()">
+        <form id="registerForm" onsubmit="return false;">
             <!-- 基本信息 -->
             <fieldset>
                 <legend>基本信息</legend>
@@ -193,12 +193,96 @@
                 </div>
             </div>
             
-            <button type="submit" class="register-button" id="submitBtn">注册账号</button>
+            <div id="registerMessage" class="message-box" style="display: none;"></div>
+            
+            <button type="submit" class="register-button" id="submitBtn" onclick="submitRegistration()">注册账号</button>
             
             <div class="form-footer">
                 已有账号？<a href="login.html">立即登录</a>
             </div>
         </form>
     </div>
+    
+    <script>
+        // 提交注册
+        function submitRegistration() {
+            // 执行表单验证
+            if(!validateForm()) {
+                return;
+            }
+            
+            // 获取主要表单数据
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const nickname = document.getElementById('nickname').value;
+            
+            const messageBox = document.getElementById('registerMessage');
+            
+            // 清除之前的消息
+            messageBox.style.display = 'none';
+            messageBox.innerHTML = '';
+            messageBox.className = 'message-box';
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            formData.append('email', email);
+            formData.append('phone', phone);
+            formData.append('nickname', nickname);
+            
+            // 使用AJAX发送请求到PHP处理文件
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'register.php', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            // 注册成功
+                            messageBox.innerHTML = '注册成功，正在跳转到登录页...';
+                            messageBox.className = 'message-box success';
+                            messageBox.style.display = 'block';
+                            
+                            // 延迟跳转到登录页
+                            setTimeout(function() {
+                                window.location.href = 'login.html';
+                            }, 2000);
+                        } else {
+                            // 注册失败
+                            messageBox.innerHTML = response.message || '注册失败，请检查表单并重试！';
+                            messageBox.className = 'message-box error';
+                            messageBox.style.display = 'block';
+                        }
+                    } catch (e) {
+                        // JSON解析错误
+                        messageBox.innerHTML = '服务器响应格式错误，请稍后再试！';
+                        messageBox.className = 'message-box error';
+                        messageBox.style.display = 'block';
+                        console.error('JSON解析错误:', e);
+                    }
+                } else {
+                    // HTTP错误
+                    messageBox.innerHTML = '服务器连接错误，请稍后再试！';
+                    messageBox.className = 'message-box error';
+                    messageBox.style.display = 'block';
+                    console.error('HTTP错误:', xhr.status);
+                }
+            };
+            
+            xhr.onerror = function() {
+                messageBox.innerHTML = '网络错误，请检查您的连接！';
+                messageBox.className = 'message-box error';
+                messageBox.style.display = 'block';
+                console.error('网络错误');
+            };
+            
+            xhr.send(formData);
+        }
+    </script>
 </body>
 </html>

@@ -148,75 +148,135 @@
                 return;
             }
             
-            const topicKey = `post_${topicId}`;
             const topicDetailEl = document.getElementById('topicDetail');
             
-            try {
-                const post = JSON.parse(localStorage.getItem(topicKey));
-                if (!post) {
-                    topicDetailEl.innerHTML = '<div class="error-message">话题不存在或已被删除</div>';
-                    return;
+            // 从服务器加载话题详情
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `topics.php?id=${topicId}`, true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success && response.topic) {
+                            const post = response.topic;
+                            
+                            // 构建详情页HTML
+                            const tagsHtml = post.tags && post.tags.length > 0 
+                                ? `<div class="topic-tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` 
+                                : '';
+                            
+                            // 添加删除按钮（仅对作者显示）
+                            const currentUser = getCurrentUser();
+                            const deleteButtonHtml = (currentUser && (currentUser === post.author || currentUser === 'admin'))
+                                ? `<button id="deleteButton" class="action-button delete-button" onclick="deleteTopic('${topicId}')">
+                                    <span class="delete-icon">🗑️</span> 删除话题
+                                  </button>`
+                                : '';
+                            
+                            // 添加作者信息、浏览量等
+                            const topicHtml = `
+                                <div class="topic-header">
+                                    <h1 class="detail-title">${post.title}</h1>
+                                    <span class="topic-category">${post.categoryName}</span>
+                                </div>
+                                <div class="topic-meta">
+                                    <span class="topic-author">${post.author}</span>
+                                    <span class="topic-time">${formatTime(post.timestamp)}</span>
+                                    <span class="topic-views">浏览 ${post.views}</span>
+                                </div>
+                                <div class="topic-full-content">${post.content}</div>
+                                ${tagsHtml}
+                                <div class="topic-stats">
+                                    <button id="likeButton" class="action-button" onclick="likeTopic('${topicId}')">
+                                        <span class="like-icon">❤</span> 点赞 <span id="likeCount">${post.likes || 0}</span>
+                                    </button>
+                                    <button class="action-button">
+                                        <span class="comment-icon">💬</span> 评论 <span>${post.comments || 0}</span>
+                                    </button>
+                                    ${deleteButtonHtml}
+                                </div>
+                            `;
+                            
+                            topicDetailEl.innerHTML = topicHtml;
+                            
+                            // 更新页面标题
+                            document.title = `${post.title} - 吉大树洞`;
+                            
+                            // 加载评论
+                            loadComments(topicId);
+                        } else {
+                            topicDetailEl.innerHTML = '<div class="error-message">话题不存在或已被删除</div>';
+                        }
+                    } catch (e) {
+                        console.error('解析话题数据出错:', e);
+                        topicDetailEl.innerHTML = '<div class="error-message">解析话题数据出错，请稍后再试</div>';
+                    }
+                } else {
+                    console.error('HTTP错误:', xhr.status);
+                    topicDetailEl.innerHTML = '<div class="error-message">服务器连接错误，请稍后再试</div>';
                 }
-                
-                // 增加浏览量
-                post.views = (post.views || 0) + 1;
-                localStorage.setItem(topicKey, JSON.stringify(post));
-                
-                // 构建详情页HTML
-                const tagsHtml = post.tags && post.tags.length > 0 
-                    ? `<div class="topic-tags">${post.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` 
-                    : '';
-                
-                // 添加作者信息、浏览量等
-                const topicHtml = `
-                    <div class="topic-header">
-                        <h1 class="detail-title">${post.title}</h1>
-                        <span class="topic-category">${post.categoryName}</span>
-                    </div>
-                    <div class="topic-meta">
-                        <span class="topic-author">${post.author}</span>
-                        <span class="topic-time">${formatTime(post.timestamp)}</span>
-                        <span class="topic-views">浏览 ${post.views}</span>
-                    </div>
-                    <div class="topic-full-content">${post.content}</div>
-                    ${tagsHtml}
-                    <div class="topic-stats">
-                        <button id="likeButton" class="action-button" onclick="likeTopic('${topicId}')">
-                            <span class="like-icon">❤</span> 点赞 <span id="likeCount">${post.likes || 0}</span>
-                        </button>
-                        <button class="action-button">
-                            <span class="comment-icon">💬</span> 评论 <span>${post.comments || 0}</span>
-                        </button>
-                    </div>
-                `;
-                
-                topicDetailEl.innerHTML = topicHtml;
-                
-                // 更新页面标题
-                document.title = `${post.title} - 吉大树洞`;
-                
-                // 加载评论
-                loadComments(topicId);
-                
-            } catch (e) {
-                console.error('加载话题出错:', e);
-                topicDetailEl.innerHTML = '<div class="error-message">加载话题出错，请稍后再试</div>';
+            };
+            
+            xhr.onerror = function() {
+                console.error('网络错误');
+                topicDetailEl.innerHTML = '<div class="error-message">网络错误，请检查您的连接</div>';
+            };
+            
+            xhr.send();
+        }
+        
+        // 删除话题
+        function deleteTopic(topicId) {
+            if (!confirm('确定要删除这个话题吗？此操作不可恢复！')) {
+                return;
             }
+            
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('topicId', topicId);
+            
+            // 发送删除请求
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'delete_topic.php', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            alert('话题删除成功！');
+                            // 跳转到首页
+                            window.location.href = 'home.html';
+                        } else {
+                            alert('删除失败：' + response.message);
+                        }
+                    } catch (e) {
+                        console.error('解析响应数据出错:', e);
+                        alert('删除失败：服务器响应格式错误');
+                    }
+                } else {
+                    console.error('HTTP错误:', xhr.status);
+                    alert('删除失败：服务器连接错误');
+                }
+            };
+            
+            xhr.onerror = function() {
+                console.error('网络错误');
+                alert('删除失败：网络错误');
+            };
+            
+            xhr.send(formData);
         }
         
         // 点赞功能
         function likeTopic(topicId) {
-            const topicKey = `post_${topicId}`;
-            try {
-                const post = JSON.parse(localStorage.getItem(topicKey));
-                if (post) {
-                    post.likes = (post.likes || 0) + 1;
-                    localStorage.setItem(topicKey, JSON.stringify(post));
-                    document.getElementById('likeCount').textContent = post.likes;
-                }
-            } catch (e) {
-                console.error('点赞出错:', e);
-            }
+            // 实际项目中应该发送请求到服务器更新点赞数
+            const likeCountEl = document.getElementById('likeCount');
+            const currentLikes = parseInt(likeCountEl.textContent || '0');
+            likeCountEl.textContent = currentLikes + 1;
         }
         
         // 加载话题的评论
@@ -224,74 +284,79 @@
             const commentListEl = document.getElementById('commentList');
             const commentCountEl = document.getElementById('commentCount');
             
-            // 先检查是否有评论
-            const commentsKey = `comments_${topicId}`;
-            let comments = [];
-            try {
-                const commentsData = localStorage.getItem(commentsKey);
-                if (commentsData) {
-                    comments = JSON.parse(commentsData);
+            // 从服务器加载评论
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `comments.php?topicId=${topicId}`, true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            const comments = response.comments || [];
+                            
+                            // 更新评论数量
+                            commentCountEl.textContent = comments.length;
+                            
+                            // 如果没有评论
+                            if (comments.length === 0) {
+                                commentListEl.innerHTML = '<div class="no-comments">暂无评论，快来发表第一条评论吧！</div>';
+                                return;
+                            }
+                            
+                            // 显示所有评论
+                            commentListEl.innerHTML = '';
+                            comments.forEach((comment, index) => {
+                                const commentEl = document.createElement('div');
+                                commentEl.className = 'comment-item';
+                                
+                                commentEl.innerHTML = `
+                                    <div class="comment-header">
+                                        <span class="comment-author">${comment.author}</span>
+                                        <span class="comment-time">${formatTime(comment.timestamp)}</span>
+                                    </div>
+                                    <div class="comment-content">${comment.content}</div>
+                                    <div class="comment-footer">
+                                        <button class="comment-like" onclick="likeComment('${topicId}', '${comment.id}')">
+                                            点赞 <span>${comment.likes || 0}</span>
+                                        </button>
+                                        <button class="comment-reply" onclick="replyToComment('${comment.author}')">
+                                            回复
+                                        </button>
+                                    </div>
+                                `;
+                                
+                                commentListEl.appendChild(commentEl);
+                            });
+                        } else {
+                            commentListEl.innerHTML = '<div class="error-message">加载评论失败</div>';
+                        }
+                    } catch (e) {
+                        console.error('解析评论数据出错:', e);
+                        commentListEl.innerHTML = '<div class="error-message">解析评论数据出错，请稍后再试</div>';
+                    }
+                } else {
+                    console.error('HTTP错误:', xhr.status);
+                    commentListEl.innerHTML = '<div class="error-message">服务器连接错误，请稍后再试</div>';
                 }
-            } catch (e) {
-                console.error('解析评论数据出错:', e);
-            }
+            };
             
-            // 更新评论数量
-            commentCountEl.textContent = comments.length;
+            xhr.onerror = function() {
+                console.error('网络错误');
+                commentListEl.innerHTML = '<div class="error-message">网络错误，请检查您的连接</div>';
+            };
             
-            // 如果没有评论
-            if (comments.length === 0) {
-                commentListEl.innerHTML = '<div class="no-comments">暂无评论，快来发表第一条评论吧！</div>';
-                return;
-            }
-            
-            // 显示所有评论
-            commentListEl.innerHTML = '';
-            comments.forEach((comment, index) => {
-                const commentEl = document.createElement('div');
-                commentEl.className = 'comment-item';
-                
-                commentEl.innerHTML = `
-                    <div class="comment-header">
-                        <span class="comment-author">${comment.author}</span>
-                        <span class="comment-time">${formatTime(comment.timestamp)}</span>
-                    </div>
-                    <div class="comment-content">${comment.content}</div>
-                    <div class="comment-footer">
-                        <button class="comment-like" onclick="likeComment('${topicId}', ${index})">
-                            点赞 <span>${comment.likes || 0}</span>
-                        </button>
-                        <button class="comment-reply" onclick="replyToComment('${comment.author}')">
-                            回复
-                        </button>
-                    </div>
-                `;
-                
-                commentListEl.appendChild(commentEl);
-            });
+            xhr.send();
         }
         
         // 点赞评论
-        function likeComment(topicId, commentIndex) {
-            const commentsKey = `comments_${topicId}`;
-            try {
-                const commentsData = localStorage.getItem(commentsKey);
-                if (commentsData) {
-                    const comments = JSON.parse(commentsData);
-                    if (comments[commentIndex]) {
-                        comments[commentIndex].likes = (comments[commentIndex].likes || 0) + 1;
-                        localStorage.setItem(commentsKey, JSON.stringify(comments));
-                        
-                        // 更新显示
-                        const likeCountEl = document.querySelectorAll('.comment-like span')[commentIndex];
-                        if (likeCountEl) {
-                            likeCountEl.textContent = comments[commentIndex].likes;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('点赞评论出错:', e);
-            }
+        function likeComment(topicId, commentId) {
+            // 实际项目中应该发送请求到服务器更新点赞数
+            const likeBtn = event.currentTarget;
+            const likeCountEl = likeBtn.querySelector('span');
+            const currentLikes = parseInt(likeCountEl.textContent || '0');
+            likeCountEl.textContent = currentLikes + 1;
         }
         
         // 回复某人评论
@@ -349,59 +414,70 @@
                 return;
             }
             
-            // 创建评论对象
-            const comment = {
-                content: content,
-                author: anonymous ? '匿名用户' : getCurrentUser(),
-                timestamp: Date.now(),
-                likes: 0
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('topicId', topicId);
+            formData.append('content', content);
+            formData.append('anonymous', anonymous ? '1' : '0');
+            
+            // 发送请求到服务器
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'comments.php', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        
+                        if (response.success) {
+                            // 显示成功消息
+                            const messageEl = document.getElementById('message');
+                            messageEl.innerHTML = '评论发表成功！';
+                            messageEl.className = 'message-box success';
+                            messageEl.style.display = 'block';
+                            
+                            // 清空表单
+                            document.getElementById('reply_content').value = '';
+                            document.getElementById('preview-container').innerHTML = '';
+                            document.getElementById('file-count').textContent = '未选择文件';
+                            
+                            // 重新加载评论
+                            setTimeout(() => {
+                                messageEl.style.display = 'none';
+                                loadComments(topicId);
+                            }, 1500);
+                        } else {
+                            // 显示错误消息
+                            const messageEl = document.getElementById('message');
+                            messageEl.innerHTML = response.message || '评论发表失败，请稍后再试！';
+                            messageEl.className = 'message-box error';
+                            messageEl.style.display = 'block';
+                        }
+                    } catch (e) {
+                        console.error('解析响应数据出错:', e);
+                        const messageEl = document.getElementById('message');
+                        messageEl.innerHTML = '服务器响应格式错误，请稍后再试！';
+                        messageEl.className = 'message-box error';
+                        messageEl.style.display = 'block';
+                    }
+                } else {
+                    console.error('HTTP错误:', xhr.status);
+                    const messageEl = document.getElementById('message');
+                    messageEl.innerHTML = '服务器连接错误，请稍后再试！';
+                    messageEl.className = 'message-box error';
+                    messageEl.style.display = 'block';
+                }
             };
             
-            // 保存评论
-            try {
-                const commentsKey = `comments_${topicId}`;
-                let comments = [];
-                
-                const commentsData = localStorage.getItem(commentsKey);
-                if (commentsData) {
-                    comments = JSON.parse(commentsData);
-                }
-                
-                comments.push(comment);
-                localStorage.setItem(commentsKey, JSON.stringify(comments));
-                
-                // 更新话题评论数
-                const topicKey = `post_${topicId}`;
-                const post = JSON.parse(localStorage.getItem(topicKey));
-                if (post) {
-                    post.comments = (post.comments || 0) + 1;
-                    localStorage.setItem(topicKey, JSON.stringify(post));
-                }
-                
-                // 显示成功消息
+            xhr.onerror = function() {
+                console.error('网络错误');
                 const messageEl = document.getElementById('message');
-                messageEl.innerHTML = '评论发表成功！';
-                messageEl.className = 'message-box success';
-                messageEl.style.display = 'block';
-                
-                // 清空表单
-                document.getElementById('reply_content').value = '';
-                document.getElementById('preview-container').innerHTML = '';
-                document.getElementById('file-count').textContent = '未选择文件';
-                
-                // 重新加载评论
-                setTimeout(() => {
-                    messageEl.style.display = 'none';
-                    loadComments(topicId);
-                }, 1500);
-                
-            } catch (e) {
-                console.error('发表评论出错:', e);
-                const messageEl = document.getElementById('message');
-                messageEl.innerHTML = '评论发表失败，请稍后再试！';
+                messageEl.innerHTML = '网络错误，请检查您的连接！';
                 messageEl.className = 'message-box error';
                 messageEl.style.display = 'block';
-            }
+            };
+            
+            xhr.send(formData);
         });
         
         // 页面加载时执行
@@ -413,5 +489,22 @@
             loadTopicDetail();
         });
     </script>
+
+    <style>
+        /* 删除按钮样式 */
+        .delete-button {
+            background-color: #f8d7da;
+            color: #721c24;
+            margin-left: auto;
+        }
+        
+        .delete-button:hover {
+            background-color: #f5c6cb;
+        }
+        
+        .delete-icon {
+            margin-right: 5px;
+        }
+    </style>
 </body>
 </html>
