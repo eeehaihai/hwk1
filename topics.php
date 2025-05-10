@@ -68,26 +68,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $topics = [];
     if (file_exists($topicsFile)) {
         $topicsData = file_get_contents($topicsFile);
-        $topics = json_decode($topicsData, true);
-        if (!is_array($topics)) {
-            $topics = [];
+        if ($topicsData !== false) {
+            $topics = json_decode($topicsData, true);
+            if (!is_array($topics)) {
+                $topics = [];
+            }
         }
     }
     
     // 添加新话题
     $topics[] = $topic;
     
+    // 确保目录存在且有写入权限
+    $directory = dirname($topicsFile);
+    if (!is_dir($directory)) {
+        mkdir($directory, 0755, true);
+    }
+    
     // 保存到文件
-    if (file_put_contents($topicsFile, json_encode($topics, JSON_PRETTY_PRINT))) {
+    $jsonData = json_encode($topics, JSON_PRETTY_PRINT);
+    if ($jsonData === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => '话题发布失败，JSON编码错误'
+        ]);
+        exit;
+    }
+    
+    $result = file_put_contents($topicsFile, $jsonData);
+    if ($result !== false) {
         echo json_encode([
             'success' => true,
             'message' => '话题发布成功',
             'topicId' => $topic['id']
         ]);
     } else {
+        // 检查文件权限
+        $errorMsg = '话题发布失败，无法保存数据';
+        if (!is_writable($topicsFile) && file_exists($topicsFile)) {
+            $errorMsg .= '（文件无写入权限）';
+        } else if (!is_writable($directory)) {
+            $errorMsg .= '（目录无写入权限）';
+        }
+        
         echo json_encode([
             'success' => false,
-            'message' => '话题发布失败，无法保存数据'
+            'message' => $errorMsg
         ]);
     }
 } 
