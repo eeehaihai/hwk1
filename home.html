@@ -180,36 +180,31 @@
             });
         });
         
-        // 查看话题详情（修改为跳转到话题详情页）
+        // 查看话题详情
         function viewTopic(id) {
             window.location.href = `topic-detail.html?id=${id}`;
         }
         
-        // 话题卡片添加点赞功能
+        // 话题卡片创建函数
         function createTopicCard(post) {
             const topicCard = document.createElement('div');
             topicCard.className = 'topic-card';
             
-            // 确保长文本正确截断
-            let contentPreview = post.content;
-            if (contentPreview.length > 200) {
-                // 查找200字符附近的最后一个空格，避免截断单词
-                const lastSpace = contentPreview.substring(0, 250).lastIndexOf(' ');
-                const cutPoint = lastSpace > 180 ? lastSpace : 200;
-                contentPreview = contentPreview.substring(0, cutPoint) + '...';
-            }
+            // 使用通用函数截断长文本
+            const contentPreview = truncateText(post.content);
             
+            // 使用通用函数处理HTML安全
             topicCard.innerHTML = `
                 <div class="topic-header">
-                    <h3 class="topic-title">${post.title}</h3>
-                    <span class="topic-category">${post.categoryName}</span>
+                    <h3 class="topic-title">${safeHtml(post.title)}</h3>
+                    <span class="topic-category">${safeHtml(post.categoryName)}</span>
                 </div>
                 <div class="topic-meta">
-                    <span class="topic-author">${post.author}</span>
+                    <span class="topic-author">${safeHtml(post.author)}</span>
                     <span class="topic-time">${formatTime(post.timestamp)}</span>
                     <span class="topic-views">浏览 ${post.views}</span>
                 </div>
-                <div class="topic-content">${contentPreview}</div>
+                <div class="topic-content">${safeHtml(contentPreview)}</div>
                 <div class="topic-footer">
                     <div class="topic-stats">
                         <span class="like-btn" onclick="likeTopicInList('${post.id}', event)">
@@ -240,51 +235,34 @@
             const topicListContainer = document.getElementById('topicListContainer');
             topicListContainer.innerHTML = '<div class="loading">加载中...</div>';
             
-            // 从服务器获取话题列表
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `topics.php?category=${category}&sortBy=${sortBy}`, true);
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
+            // 使用通用AJAX请求函数
+            sendAjaxRequest('GET', `topics.php?category=${category}&sortBy=${sortBy}`, null, 
+                function(response) {
+                    if (response.success) {
+                        const posts = response.topics;
                         
-                        if (response.success) {
-                            const posts = response.topics;
-                            
-                            // 如果没有帖子，显示提示
-                            if (posts.length === 0) {
-                                topicListContainer.innerHTML = '<div class="no-topics">暂无话题，快来发布第一个话题吧！</div>';
-                                return;
-                            }
-                            
-                            // 清空加载提示
-                            topicListContainer.innerHTML = '';
-                            
-                            // 显示每个帖子
-                            posts.forEach(post => {
-                                const topicCard = createTopicCard(post);
-                                topicListContainer.appendChild(topicCard);
-                            });
-                        } else {
-                            topicListContainer.innerHTML = `<div class="no-topics">加载话题失败: ${response.message}</div>`;
+                        // 如果没有帖子，显示提示
+                        if (posts.length === 0) {
+                            topicListContainer.innerHTML = '<div class="no-topics">暂无话题，快来发布第一个话题吧！</div>';
+                            return;
                         }
-                    } catch (e) {
-                        console.error('解析话题数据出错:', e);
-                        topicListContainer.innerHTML = '<div class="no-topics">解析话题数据出错，请刷新页面重试</div>';
+                        
+                        // 清空加载提示
+                        topicListContainer.innerHTML = '';
+                        
+                        // 显示每个帖子
+                        posts.forEach(post => {
+                            const topicCard = createTopicCard(post);
+                            topicListContainer.appendChild(topicCard);
+                        });
+                    } else {
+                        topicListContainer.innerHTML = `<div class="no-topics">加载话题失败: ${safeHtml(response.message)}</div>`;
                     }
-                } else {
-                    console.error('HTTP错误:', xhr.status);
+                },
+                function() {
                     topicListContainer.innerHTML = '<div class="no-topics">服务器连接错误，请稍后再试</div>';
                 }
-            };
-            
-            xhr.onerror = function() {
-                console.error('网络错误');
-                topicListContainer.innerHTML = '<div class="no-topics">网络错误，请检查您的连接</div>';
-            };
-            
-            xhr.send();
+            );
         }
         
         // 在列表页点赞话题
@@ -294,29 +272,21 @@
             const likeBtn = event.currentTarget;
             const likeCountEl = likeBtn.querySelector('.like-count');
             
-            // 发送点赞请求到服务器
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'like_topic.php', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            // 更新显示的点赞数
-                            likeCountEl.textContent = response.likes;
-                        } else {
-                            console.error('点赞失败:', response.message);
-                            alert(response.message || '点赞失败，请稍后再试');
-                        }
-                    } catch (e) {
-                        console.error('解析点赞响应出错:', e);
+            // 使用通用AJAX请求函数
+            sendAjaxRequest('POST', 'like_topic.php', { topicId: topicId },
+                function(response) {
+                    if (response.success) {
+                        // 更新显示的点赞数
+                        likeCountEl.textContent = response.likes;
+                    } else {
+                        console.error('点赞失败:', response.message);
+                        alert(response.message || '点赞失败，请稍后再试');
                     }
+                },
+                function() {
+                    console.error('点赞请求失败');
                 }
-            };
-            
-            xhr.send(`topicId=${topicId}`);
+            );
         }
         
         // 更新分类统计
@@ -408,7 +378,7 @@
                 
                 topPosts.forEach(post => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<a href="#">${post.title}</a>`;
+                    li.innerHTML = `<a href="#">${safeHtml(post.title)}</a>`;
                     
                     // 点击查看详情
                     li.querySelector('a').addEventListener('click', function(e) {
@@ -457,7 +427,7 @@
                 
                 topUsers.forEach(user => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<a href="#">${user.username} <span class="category-count">${user.postCount}</span></a>`;
+                    li.innerHTML = `<a href="#">${safeHtml(user.username)} <span class="category-count">${user.postCount}</span></a>`;
                     activeUsersEl.appendChild(li);
                 });
             });
@@ -485,12 +455,12 @@
                 
                 // 显示搜索结果
                 if (filteredPosts.length === 0) {
-                    topicListContainer.innerHTML = `<div class="no-topics">没有找到与 "${searchTerm}" 相关的话题</div>`;
+                    topicListContainer.innerHTML = `<div class="no-topics">没有找到与 "${safeHtml(searchTerm)}" 相关的话题</div>`;
                     return;
                 }
                 
                 // 清空现有内容
-                topicListContainer.innerHTML = `<div class="search-result-info">找到 ${filteredPosts.length} 个与 "${searchTerm}" 相关的话题</div>`;
+                topicListContainer.innerHTML = `<div class="search-result-info">找到 ${filteredPosts.length} 个与 "${safeHtml(searchTerm)}" 相关的话题</div>`;
                 
                 // 显示每个帖子
                 filteredPosts.forEach(post => {
