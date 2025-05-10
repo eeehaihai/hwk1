@@ -83,9 +83,9 @@
         "disableComment": false,
         "author": "admin",
         "timestamp": 1746888808000,
-        "views": 4,
+        "views": 5,
         "likes": 0,
-        "comments": 0
+        "comments": 1
     },
     {
         "id": "681f688864f24",
@@ -119,8 +119,8 @@
         "disableComment": false,
         "author": "admin",
         "timestamp": 1746891604000,
-        "views": 0,
+        "views": 2,
         "likes": 0,
-        "comments": 0
+        "comments": 2
     }
 ]

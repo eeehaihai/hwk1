@@ -120,16 +120,17 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
             return $b['timestamp'] - $a['timestamp'];
         });
     } else if ($sortBy === 'hottest') {
-        // 计算一周内的点赞数并排序
+        // 计算一周内的热度
         $oneWeekAgo = (time() - 7 * 24 * 60 * 60) * 1000; // 一周前的JavaScript时间戳
         
-        // 计算热度分数 - 对于一周内发布的帖子，其点赞数权重更高
+        // 计算热度分数 - 基于一周内的评论数+点赞数
         foreach ($topics as &$topic) {
-            // 如果是一周内发布的帖子，其点赞数权重为1.5倍
             if ($topic['timestamp'] >= $oneWeekAgo) {
-                $topic['hotScore'] = $topic['likes'] * 1.5;
+                // 一周内的帖子，热度 = 评论数 + 点赞数
+                $topic['hotScore'] = $topic['comments'] + $topic['likes'];
             } else {
-                $topic['hotScore'] = $topic['likes'];
+                // 超过一周的帖子热度为0
+                $topic['hotScore'] = 0;
             }
         }
         

@@ -159,3 +159,85 @@ function truncateText(text, maxLength = 200) {
     
     return text.substring(0, cutPoint) + '...';
 }
+
+// 显示消息提示
+function showMessage(elementId, message, type = 'error') {
+    const messageEl = document.getElementById(elementId);
+    if (!messageEl) return;
+    
+    messageEl.innerHTML = message;
+    messageEl.className = `message-box ${type}`;
+    messageEl.style.display = 'block';
+    
+    // 如果是成功消息，2秒后自动隐藏
+    if (type === 'success') {
+        setTimeout(() => {
+            messageEl.style.display = 'none';
+        }, 2000);
+    }
+    
+    return messageEl;
+}
+
+// 表单提交的通用处理函数
+function handleFormSubmit(formElement, url, onSuccess, onError) {
+    if (!formElement) return;
+    
+    formElement.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 创建FormData对象
+        const formData = new FormData(formElement);
+        
+        // 发送请求
+        sendAjaxRequest('POST', url, formData,
+            function(response) {
+                if (response.success) {
+                    if (onSuccess) onSuccess(response);
+                } else {
+                    if (onError) onError(response.message || '操作失败，请稍后再试');
+                }
+            },
+            function() {
+                if (onError) onError('网络错误，请检查您的连接');
+            }
+        );
+    });
+}
+
+// 处理图片预览的通用函数
+function setupImagePreview(inputId, previewContainerId, maxImages = 3) {
+    const input = document.getElementById(inputId);
+    const countEl = document.getElementById(`${inputId}-count`);
+    const previewContainer = document.getElementById(previewContainerId);
+    
+    if (!input || !previewContainer) return;
+    
+    input.addEventListener('change', function(e) {
+        const fileCount = e.target.files.length;
+        
+        if (countEl) {
+            countEl.textContent = fileCount > 0 ? `已选择 ${fileCount} 个文件` : '未选择文件';
+        }
+        
+        // 预览功能
+        previewContainer.innerHTML = '';
+        
+        for(let i = 0; i < Math.min(fileCount, maxImages); i++) {
+            const file = e.target.files[i];
+            if(file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '4px';
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+}

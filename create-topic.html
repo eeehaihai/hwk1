@@ -89,114 +89,26 @@
             if (!checkLoginRequired()) {
                 return;
             }
-        });
-        
-        // 简单预览选择的图片数量
-        document.getElementById('images').addEventListener('change', function(e) {
-            const fileCount = e.target.files.length;
-            document.getElementById('file-count').textContent = 
-                fileCount > 0 ? `已选择 ${fileCount} 个文件` : '未选择文件';
             
-            // 简单的预览功能（实际项目中可能需要更复杂的实现）
-            const previewContainer = document.getElementById('preview-container');
-            previewContainer.innerHTML = '';
+            // 设置图片预览
+            setupImagePreview('images', 'preview-container', 9);
             
-            for(let i = 0; i < Math.min(fileCount, 9); i++) {
-                const file = e.target.files[i];
-                if(file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.width = '80px';
-                        img.style.height = '80px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '4px';
-                        previewContainer.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
+            // 处理表单提交
+            handleFormSubmit(document.getElementById('topicForm'), 'topics.php', 
+                function(response) {
+                    // 成功回调
+                    showMessage('message', '话题发布成功！正在跳转到首页...', 'success');
+                    
+                    // 延迟跳转
+                    setTimeout(function() {
+                        window.location.href = 'home.html';
+                    }, 1500);
+                },
+                function(errorMsg) {
+                    // 错误回调
+                    showMessage('message', errorMsg, 'error');
                 }
-            }
-        });
-        
-        // 表单提交处理
-        document.getElementById('topicForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // 获取表单数据
-            const title = document.getElementById('title').value;
-            const category = document.getElementById('category').value;
-            const content = document.getElementById('content').value;
-            const tags = document.getElementById('tags').value;
-            const anonymous = document.getElementById('anonymous').checked;
-            const top = document.getElementById('top').checked;
-            const disableComment = document.getElementById('disable_comment').checked;
-            
-            // 创建FormData对象
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category);
-            formData.append('content', content);
-            formData.append('tags', tags);
-            formData.append('anonymous', anonymous ? '1' : '0');
-            formData.append('top', top ? '1' : '0');
-            formData.append('disable_comment', disableComment ? '1' : '0');
-            
-            // 发送请求到服务器
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'topics.php', true);
-            
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        
-                        if (response.success) {
-                            // 显示成功消息
-                            const messageEl = document.getElementById('message');
-                            messageEl.innerHTML = '话题发布成功！正在跳转到首页...';
-                            messageEl.className = 'message-box success';
-                            messageEl.style.display = 'block';
-                            
-                            // 延迟跳转到首页
-                            setTimeout(function() {
-                                window.location.href = 'home.html';
-                            }, 1500);
-                        } else {
-                            // 显示错误消息
-                            const messageEl = document.getElementById('message');
-                            messageEl.innerHTML = response.message || '话题发布失败，请稍后再试！';
-                            messageEl.className = 'message-box error';
-                            messageEl.style.display = 'block';
-                        }
-                    } catch (e) {
-                        // 显示错误消息
-                        const messageEl = document.getElementById('message');
-                        messageEl.innerHTML = '服务器响应格式错误，请稍后再试！';
-                        messageEl.className = 'message-box error';
-                        messageEl.style.display = 'block';
-                        console.error('解析响应数据错误:', e);
-                    }
-                } else {
-                    // 显示错误消息
-                    const messageEl = document.getElementById('message');
-                    messageEl.innerHTML = '服务器连接错误，请稍后再试！';
-                    messageEl.className = 'message-box error';
-                    messageEl.style.display = 'block';
-                    console.error('HTTP错误:', xhr.status);
-                }
-            };
-            
-            xhr.onerror = function() {
-                // 显示错误消息
-                const messageEl = document.getElementById('message');
-                messageEl.innerHTML = '网络错误，请检查您的连接！';
-                messageEl.className = 'message-box error';
-                messageEl.style.display = 'block';
-                console.error('网络错误');
-            };
-            
-            xhr.send(formData);
+            );
         });
     </script>
 </body>
