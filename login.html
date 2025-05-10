@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吉大树洞 - 用户登录</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js"></script>
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="logo-container">
+            <!-- 这里可以放置学校或树洞的logo -->
+            <img src="https://placeholder.com/80" alt="吉大树洞Logo">
+        </div>
+        <h1>吉大树洞 - 用户登录</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">用户名/邮箱</label>
+                <input type="text" id="username" name="username" required placeholder="请输入用户名或邮箱">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" required placeholder="请输入密码">
+            </div>
+            
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember" value="1">
+                <label for="remember">记住我</label>
+            </div>
+            
+            <div id="loginMessage" class="message-box" style="display: none;"></div>
+            
+            <button type="submit" class="full-width-button">登录</button>
+            
+            <div class="links">
+                <a href="register.html">注册新账号</a>
+                <a href="forgot-password.html">忘记密码？</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageBox = document.getElementById('loginMessage');
+            
+            // 清除之前的消息
+            messageBox.style.display = 'none';
+            messageBox.innerHTML = '';
+            messageBox.className = 'message-box';
+            
+            // 使用AJAX读取用户数据
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'users.json', true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const userData = JSON.parse(xhr.responseText);
+                        const users = userData.users;
+                        
+                        // 检查用户名和密码
+                        const user = users.find(u => u.username === username && u.password === password);
+                        
+                        if (user) {
+                            // 登录成功
+                            messageBox.innerHTML = '登录成功，正在跳转...';
+                            messageBox.className = 'message-box success';
+                            messageBox.style.display = 'block';
+                            
+                            // 存储登录信息到sessionStorage
+                            sessionStorage.setItem('login', username);
+                            
+                            // 延迟跳转到首页
+                            setTimeout(function() {
+                                window.location.href = 'home.html';
+                            }, 1000);
+                        } else {
+                            // 登录失败
+                            messageBox.innerHTML = '用户名或密码错误，请重试！';
+                            messageBox.className = 'message-box error';
+                            messageBox.style.display = 'block';
+                        }
+                    } catch (e) {
+                        // JSON解析错误
+                        messageBox.innerHTML = '服务器响应格式错误，请稍后再试！';
+                        messageBox.className = 'message-box error';
+                        messageBox.style.display = 'block';
+                        console.error('JSON解析错误:', e);
+                    }
+                } else {
+                    // HTTP错误
+                    messageBox.innerHTML = '服务器连接错误，请稍后再试！';
+                    messageBox.className = 'message-box error';
+                    messageBox.style.display = 'block';
+                    console.error('HTTP错误:', xhr.status);
+                }
+            };
+            
+            xhr.onerror = function() {
+                messageBox.innerHTML = '网络错误，请检查您的连接！';
+                messageBox.className = 'message-box error';
+                messageBox.style.display = 'block';
+                console.error('网络错误');
+            };
+            
+            xhr.send();
+        });
+    </script>
+</body>
+</html>

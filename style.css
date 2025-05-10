@@ -1,0 +1,901 @@
+/* 通用样式 */
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+h1 {
+    color: #1e3a8a;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* 表单元素样式 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"], input[type="password"], input[type="email"], 
+input[type="tel"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+button {
+    background-color: #1e3a8a;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #152b5e;
+}
+
+.required:after {
+    content: " *";
+    color: red;
+}
+
+input[type="radio"], input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* 头部导航样式 */
+header {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 24px;
+    margin-left: 10px;
+}
+
+.logo img {
+    height: 40px;
+    width: auto;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    margin-left: 20px;
+}
+
+nav a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #1e3a8a;
+}
+
+.user-actions a {
+    margin-left: 15px;
+    text-decoration: none;
+}
+
+.login-btn {
+    color: #1e3a8a;
+    font-weight: bold;
+}
+
+.register-btn {
+    background-color: #1e3a8a;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.register-btn:hover {
+    background-color: #152b5e;
+}
+
+/* 页面容器样式 */
+.page-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* 首页特有样式 */
+.search-section {
+    background-color: #1e3a8a;
+    padding: 25px 0;
+    color: white;
+}
+
+.search-container {
+    text-align: center;
+}
+
+.search-container h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.search-box {
+    display: flex;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+}
+
+.search-box button {
+    background-color: #f0f0f0;
+    border: none;
+    padding: 0 20px;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+.create-topic-btn {
+    background-color: #1e3a8a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    display: inline-block;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.create-topic-btn:hover {
+    background-color: #152b5e;
+}
+
+.main-content {
+    display: flex;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.topic-list {
+    flex: 3;
+    margin-right: 20px;
+}
+
+.topic-filter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+.filter-options {
+    display: flex;
+    gap: 15px;
+}
+
+.filter-options a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.filter-options a.active, .filter-options a:hover {
+    color: #1e3a8a;
+    font-weight: 500;
+}
+
+.sort-options {
+    display: flex;
+    gap: 15px;
+}
+
+.sort-options a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.sort-options a.active, .sort-options a:hover {
+    color: #1e3a8a;
+    font-weight: 500;
+}
+
+.topic-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.topic-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.topic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.topic-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.topic-category {
+    font-size: 12px;
+    background-color: #f0f0f0;
+    padding: 3px 10px;
+    border-radius: 20px;
+    color: #666;
+}
+
+.topic-meta {
+    display: flex;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.topic-author, .topic-time, .topic-views {
+    margin-right: 15px;
+}
+
+.topic-content {
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.topic-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #666;
+    font-size: 14px;
+}
+
+.topic-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.topic-action a {
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+.topic-action a:hover {
+    text-decoration: underline;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    flex: 1;
+}
+
+.sidebar-widget {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+.sidebar-widget h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 18px;
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-list li {
+    margin-bottom: 10px;
+}
+
+.category-list a {
+    display: flex;
+    justify-content: space-between;
+    color: #444;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.category-list a:hover {
+    color: #1e3a8a;
+}
+
+.category-count {
+    background-color: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #666;
+}
+
+.hot-topics {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.hot-topics li {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.hot-topics li:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.hot-topics a {
+    color: #444;
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+    transition: color 0.3s;
+}
+
+.hot-topics a:hover {
+    color: #1e3a8a;
+}
+
+/* 页脚样式 */
+footer {
+    background-color: #333;
+    color: white;
+    padding: 30px 0;
+    font-size: 14px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer-links {
+    display: flex;
+    gap: 30px;
+}
+
+.footer-links h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 8px;
+}
+
+.footer-links a {
+    color: #ddd;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.copyright {
+    text-align: center;
+    margin-top: 30px;
+    color: #aaa;
+}
+
+/* 登录页特有样式 */
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo-container img {
+    max-width: 80px;
+    height: auto;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.remember-me input {
+    margin-right: 10px;
+}
+
+.full-width-button {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.links a {
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+.links a:hover {
+    text-decoration: underline;
+}
+
+/* 注册页特有样式 */
+.radio-group, .checkbox-group {
+    display: flex;
+    margin: 10px 0;
+}
+
+.radio-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.radio-button {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.radio-label {
+    display: block;
+    padding: 8px 20px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+input[type="radio"]:checked + .radio-label {
+    background-color: #1e3a8a;
+    color: white;
+    border-color: #1e3a8a;
+}
+
+.register-button {
+    display: block;
+    margin: 20px auto 0;
+    width: 200px;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.form-footer a {
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}
+
+/* 话题回复页特有样式 */
+.topic-info {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border-left: 4px solid #1e3a8a;
+}
+
+.upload-section {
+    margin-bottom: 20px;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.file-label:hover {
+    background-color: #e0e0e0;
+}
+
+.files-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+}
+
+.tips {
+    font-size: 14px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.option-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+}
+
+.nav-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+/* 登录状态相关样式 */
+.welcome-text {
+    margin-right: 15px;
+    font-weight: bold;
+    color: #1e3a8a;
+}
+
+.logout-btn {
+    color: #666;
+    text-decoration: none;
+}
+
+.logout-btn:hover {
+    color: #1e3a8a;
+    text-decoration: underline;
+}
+
+/* 消息提示框样式 */
+.message-box {
+    padding: 12px;
+    margin: 15px 0;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.message-box.success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+}
+
+.message-box.error {
+    background-color: #ffebee;
+    color: #c62828;
+    border-left: 4px solid #c62828;
+}
+
+.message-box.info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border-left: 4px solid #1565c0;
+}
+
+/* 话题列表样式扩展 */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.no-topics {
+    text-align: center;
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.topic-card {
+    cursor: pointer;
+}
+
+.search-result-info {
+    padding: 10px 15px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    color: #333;
+    border-left: 4px solid #1e3a8a;
+}
+
+/* 话题详情页样式 */
+.topic-detail-container {
+    max-width: 900px;
+    padding: 25px;
+}
+
+.topic-detail {
+    margin-bottom: 30px;
+}
+
+.detail-title {
+    font-size: 24px;
+    margin: 0 0 10px 0;
+    color: #333;
+    text-align: left;
+}
+
+.topic-full-content {
+    margin: 20px 0;
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+}
+
+.topic-tags {
+    margin: 15px 0;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #666;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.topic-stats {
+    margin: 20px 0;
+    display: flex;
+    gap: 15px;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.action-button:hover {
+    background-color: #e0e0e0;
+}
+
+.like-icon, .comment-icon {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+.error-message {
+    padding: 15px;
+    background-color: #ffebee;
+    color: #c62828;
+    border-radius: 4px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+/* 评论部分样式 */
+.comment-section {
+    margin-bottom: 30px;
+}
+
+.comment-section h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.comment-list {
+    margin-bottom: 20px;
+}
+
+.no-comments {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.comment-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #1e3a8a;
+}
+
+.comment-time {
+    font-size: 12px;
+    color: #999;
+}
+
+.comment-content {
+    line-height: 1.6;
+    margin-bottom: 10px;
+    word-break: break-word;
+}
+
+.comment-footer {
+    display: flex;
+    gap: 15px;
+}
+
+.comment-like, .comment-reply {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    padding: 0;
+}
+
+.comment-like:hover, .comment-reply:hover {
+    color: #1e3a8a;
+}
+
+/* 回复表单部分 */
+.reply-form-section {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.reply-form-section h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 15px;
+}

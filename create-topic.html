@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吉大树洞 - 发表话题</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js"></script>
+</head>
+<body>
+    <div class="page-container">
+        <h1>吉大树洞 - 发表话题</h1>
+        <form id="topicForm">
+            <div class="form-group">
+                <label for="title" class="required">话题标题</label>
+                <input type="text" id="title" name="title" required placeholder="请输入话题标题（5-50字）" minlength="5" maxlength="50">
+            </div>
+            
+            <div class="form-group">
+                <label for="category" class="required">话题分类</label>
+                <select id="category" name="category" required>
+                    <option value="">请选择分类</option>
+                    <option value="campus_life">校园生活</option>
+                    <option value="study">学习交流</option>
+                    <option value="emotion">情感树洞</option>
+                    <option value="career">就业考研</option>
+                    <option value="entertainment">娱乐休闲</option>
+                    <option value="secondhand">二手交易</option>
+                    <option value="lost_found">失物招领</option>
+                    <option value="suggestion">建议反馈</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="content" class="required">话题内容</label>
+                <textarea id="content" name="content" required placeholder="请输入话题内容，详细描述您想分享或讨论的事情..."></textarea>
+                <div class="tips">支持文本格式，可以适当添加表情、图片等丰富内容</div>
+            </div>
+            
+            <div class="upload-section">
+                <label>添加图片</label>
+                <input type="file" id="images" name="images[]" class="file-input" accept="image/*" multiple>
+                <label for="images" class="file-label">选择图片</label>
+                <span id="file-count">未选择文件</span>
+                <div class="tips">最多可上传9张图片，每张不超过5MB</div>
+                <div class="files-preview" id="preview-container"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags">添加标签</label>
+                <input type="text" id="tags" name="tags" placeholder="请输入标签，多个标签用逗号分隔">
+                <div class="tips">标签可以帮助其他用户更好地找到您的话题</div>
+            </div>
+            
+            <div class="form-group">
+                <label>话题选项</label>
+                <div class="option-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="anonymous" name="anonymous" value="1">
+                        <label for="anonymous">匿名发布</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="top" name="top" value="1">
+                        <label for="top">申请置顶</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="disable_comment" name="disable_comment" value="1">
+                        <label for="disable_comment">关闭评论</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="message" class="message-box" style="display: none;"></div>
+            
+            <div class="button-group">
+                <button type="button" onclick="window.location.href='home.html'">取消</button>
+                <button type="submit">发布话题</button>
+            </div>
+        </form>
+        
+        <a href="home.html" class="nav-link">返回首页</a>
+    </div>
+    
+    <script>
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // 如果未登录，重定向到登录页面
+            if (!checkLoginRequired()) {
+                return;
+            }
+        });
+        
+        // 简单预览选择的图片数量
+        document.getElementById('images').addEventListener('change', function(e) {
+            const fileCount = e.target.files.length;
+            document.getElementById('file-count').textContent = 
+                fileCount > 0 ? `已选择 ${fileCount} 个文件` : '未选择文件';
+            
+            // 简单的预览功能（实际项目中可能需要更复杂的实现）
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.innerHTML = '';
+            
+            for(let i = 0; i < Math.min(fileCount, 9); i++) {
+                const file = e.target.files[i];
+                if(file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '80px';
+                        img.style.height = '80px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '4px';
+                        previewContainer.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+        
+        // 表单提交处理
+        document.getElementById('topicForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 获取表单数据
+            const title = document.getElementById('title').value;
+            const category = document.getElementById('category').value;
+            const content = document.getElementById('content').value;
+            const tags = document.getElementById('tags').value;
+            const anonymous = document.getElementById('anonymous').checked;
+            const top = document.getElementById('top').checked;
+            const disableComment = document.getElementById('disable_comment').checked;
+            
+            // 处理图片（这里只存储图片数量，实际项目可能需要存储图片数据）
+            const imageFiles = document.getElementById('images').files;
+            const imageCount = imageFiles.length;
+            
+            // 构建帖子对象
+            const post = {
+                title: title,
+                category: category,
+                content: content,
+                tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+                options: {
+                    anonymous: anonymous,
+                    top: top,
+                    disableComment: disableComment
+                },
+                imageCount: imageCount,
+                timestamp: Date.now(),
+                author: anonymous ? '匿名用户' : getCurrentUser(),
+                views: 0,
+                likes: 0,
+                comments: 0
+            };
+            
+            // 将标题对应的分类显示名称加入
+            const categoryNames = {
+                'campus_life': '校园生活',
+                'study': '学习交流',
+                'emotion': '情感树洞',
+                'career': '就业考研',
+                'entertainment': '娱乐休闲',
+                'secondhand': '二手交易',
+                'lost_found': '失物招领',
+                'suggestion': '建议反馈',
+                'other': '其他'
+            };
+            post.categoryName = categoryNames[category] || '其他';
+            
+            // 保存到localStorage
+            try {
+                const postId = savePost(post);
+                
+                // 显示成功消息
+                const messageEl = document.getElementById('message');
+                messageEl.innerHTML = '话题发布成功！正在跳转到首页...';
+                messageEl.className = 'message-box success';
+                messageEl.style.display = 'block';
+                
+                // 延迟跳转到首页
+                setTimeout(function() {
+                    window.location.href = 'home.html';
+                }, 1500);
+                
+            } catch (e) {
+                // 显示错误消息
+                const messageEl = document.getElementById('message');
+                messageEl.innerHTML = '话题发布失败，请稍后再试！错误: ' + e.message;
+                messageEl.className = 'message-box error';
+                messageEl.style.display = 'block';
+                console.error('保存帖子错误:', e);
+            }
+        });
+    </script>
+</body>
+</html>
