@@ -23,52 +23,60 @@ function logout() {
     xhr.send();
 }
 
-// 保存新帖子到localStorage
-function savePost(post) {
-    const id = generateUniqueId();
-    const key = `post_${id}`;
-    post.timestamp = Date.now();
-    post.author = getCurrentUser();
-    localStorage.setItem(key, JSON.stringify(post));
-    return id;
-}
-
-// 生成唯一ID
-function generateUniqueId() {
-    return Date.now().toString() + Math.floor(Math.random() * 1000).toString();
-}
-
 // 获取所有帖子
 function getAllPosts(callback) {
+    sendAjaxRequest('GET', 'topics.php', null, function(response) {
+        if (response && response.success) {
+            callback(response.topics);
+        } else {
+            console.error('获取帖子失败:', response ? response.message : '未知错误');
+            callback([]);
+        }
+    }, function() {
+        callback([]);
+    });
+}
+
+// 发送AJAX请求的通用函数
+function sendAjaxRequest(method, url, data, successCallback, errorCallback) {
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'topics.php', true);
+    xhr.open(method, url, true);
+    
+    if (method === 'POST' && !(data instanceof FormData)) {
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    }
     
     xhr.onload = function() {
         if (xhr.status === 200) {
             try {
                 const response = JSON.parse(xhr.responseText);
-                if (response.success) {
-                    callback(response.topics);
-                } else {
-                    console.error('获取帖子失败:', response.message);
-                    callback([]);
-                }
+                successCallback(response);
             } catch (e) {
-                console.error('解析帖子数据出错:', e);
-                callback([]);
+                console.error('解析响应数据出错:', e);
+                if (errorCallback) errorCallback();
             }
         } else {
             console.error('HTTP错误:', xhr.status);
-            callback([]);
+            if (errorCallback) errorCallback();
         }
     };
     
     xhr.onerror = function() {
         console.error('网络错误');
-        callback([]);
+        if (errorCallback) errorCallback();
     };
     
-    xhr.send();
+    if (data instanceof FormData) {
+        xhr.send(data);
+    } else if (data) {
+        // 将对象转换为URL编码格式
+        let params = Object.keys(data).map(key => 
+            encodeURIComponent(key) + '=' + encodeURIComponent(data[key])
+        ).join('&');
+        xhr.send(params);
+    } else {
+        xhr.send();
+    }
 }
 
 // 更新导航栏用户状态
@@ -77,51 +85,24 @@ function updateNavUserStatus() {
     if (!userActions) return;
     
     // 发送请求到服务器检查会话状态
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'check_session.php', true);
-    
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            try {
-                const response = JSON.parse(xhr.responseText);
-                
-                if (response.loggedIn) {
-                    // 已登录状态
-                    sessionStorage.setItem('login', response.username);
-                    userActions.innerHTML = `
-                        <span class="welcome-text">欢迎, ${response.username}</span>
-                        <a href="#" onclick="logout()" class="logout-btn">退出登录</a>
-                    `;
-                } else {
-                    // 未登录状态
-                    sessionStorage.removeItem('login');
-                    userActions.innerHTML = `
-                        <a href="login.html" class="login-btn">登录</a>
-                        <a href="register.html" class="register-btn">注册</a>
-                    `;
-                }
-            } catch (e) {
-                console.error('解析会话数据出错:', e);
-                // 回退到本地存储检查
-                fallbackToLocalSession();
-            }
+    sendAjaxRequest('GET', 'check_session.php', null, function(response) {
+        if (response.loggedIn) {
+            // 已登录状态
+            sessionStorage.setItem('login', response.username);
+            userActions.innerHTML = `
+                <span class="welcome-text">欢迎, ${response.username}</span>
+                <a href="#" onclick="logout()" class="logout-btn">退出登录</a>
+            `;
         } else {
-            console.error('HTTP错误:', xhr.status);
-            // 回退到本地存储检查
-            fallbackToLocalSession();
+            // 未登录状态
+            sessionStorage.removeItem('login');
+            userActions.innerHTML = `
+                <a href="login.html" class="login-btn">登录</a>
+                <a href="register.html" class="register-btn">注册</a>
+            `;
         }
-    };
-    
-    xhr.onerror = function() {
-        console.error('网络错误');
+    }, function() {
         // 回退到本地存储检查
-        fallbackToLocalSession();
-    };
-    
-    xhr.send();
-    
-    // 回退函数：使用本地存储检查登录状态
-    function fallbackToLocalSession() {
         if (isLoggedIn()) {
             userActions.innerHTML = `
                 <span class="welcome-text">欢迎, ${getCurrentUser()}</span>
@@ -133,7 +114,7 @@ function updateNavUserStatus() {
                 <a href="register.html" class="register-btn">注册</a>
             `;
         }
-    }
+    });
 }
 
 // 检查登录状态，如果需要登录但未登录，则重定向到登录页面
@@ -152,6 +133,29 @@ function formatTime(timestamp) {
     return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`;
 }
 
+// 数字补零
 function padZero(num) {
     return num < 10 ? '0' + num : num;
+}
+
+// 安全处理HTML内容
+function safeHtml(content) {
+    return content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/\n/g, '<br>');
+}
+
+// 截断长文本
+function truncateText(text, maxLength = 200) {
+    if (text.length <= maxLength) return text;
+    
+    // 查找接近最大长度的最后一个空格
+    const lastSpace = text.substring(0, maxLength + 50).lastIndexOf(' ');
+    const cutPoint = lastSpace > maxLength * 0.9 ? lastSpace : maxLength;
+    
+    return text.substring(0, cutPoint) + '...';
 }

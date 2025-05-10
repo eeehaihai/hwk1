@@ -2,8 +2,8 @@
 // 开启会话
 session_start();
 
-// 设置响应类型为JSON
-header('Content-Type: application/json');
+// 引入工具函数
+require_once 'utils.php';
 
 // 评论数据文件前缀
 $commentsFilePrefix = 'comments_';
@@ -11,12 +11,11 @@ $commentsFilePrefix = 'comments_';
 // 发表评论
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 检查用户是否登录
-    if (!isset($_SESSION['login'])) {
-        echo json_encode([
+    if (!isUserLoggedIn()) {
+        jsonResponse([
             'success' => false,
             'message' => '请先登录'
         ]);
-        exit;
     }
     
     // 获取评论数据
@@ -26,18 +25,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 简单验证
     if (empty($topicId) || empty($content)) {
-        echo json_encode([
+        jsonResponse([
             'success' => false,
             'message' => '话题ID和评论内容不能为空'
         ]);
-        exit;
     }
     
     // 创建评论对象
     $comment = [
         'id' => uniqid(),
         'content' => $content,
-        'author' => $anonymous ? '匿名用户' : $_SESSION['login'],
+        'author' => $anonymous ? '匿名用户' : getCurrentUser(),
         'timestamp' => time() * 1000, // JavaScript时间戳格式
         'likes' => 0
     ];
@@ -46,30 +44,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $commentsFile = $commentsFilePrefix . $topicId . '.json';
     
     // 读取评论文件
-    $comments = [];
-    if (file_exists($commentsFile)) {
-        $commentsData = file_get_contents($commentsFile);
-        $comments = json_decode($commentsData, true);
-        if (!is_array($comments)) {
-            $comments = [];
-        }
-    }
+    $comments = readJsonFile($commentsFile, []);
     
     // 添加新评论
     $comments[] = $comment;
     
     // 保存到文件
-    if (file_put_contents($commentsFile, json_encode($comments, JSON_PRETTY_PRINT))) {
+    if (saveJsonFile($commentsFile, $comments)) {
         // 更新话题评论数
         updateTopicCommentCount($topicId);
         
-        echo json_encode([
+        jsonResponse([
             'success' => true,
             'message' => '评论发表成功',
             'comment' => $comment
         ]);
     } else {
-        echo json_encode([
+        jsonResponse([
             'success' => false,
             'message' => '评论发表失败，无法保存数据'
         ]);
@@ -80,36 +71,24 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $topicId = isset($_GET['topicId']) ? $_GET['topicId'] : '';
     
     if (empty($topicId)) {
-        echo json_encode([
+        jsonResponse([
             'success' => false,
             'message' => '话题ID不能为空'
         ]);
-        exit;
     }
     
     // 评论文件名
     $commentsFile = $commentsFilePrefix . $topicId . '.json';
     
     // 读取评论文件
-    if (file_exists($commentsFile)) {
-        $commentsData = file_get_contents($commentsFile);
-        $comments = json_decode($commentsData, true);
-        if (!is_array($comments)) {
-            $comments = [];
-        }
-        
-        echo json_encode([
-            'success' => true,
-            'comments' => $comments
-        ]);
-    } else {
-        echo json_encode([
-            'success' => true,
-            'comments' => []
-        ]);
-    }
+    $comments = readJsonFile($commentsFile, []);
+    
+    jsonResponse([
+        'success' => true,
+        'comments' => $comments
+    ]);
 } else {
-    echo json_encode([
+    jsonResponse([
         'success' => false,
         'message' => '请求方法不允许或参数错误'
     ]);
@@ -119,21 +98,18 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 function updateTopicCommentCount($topicId) {
     $topicsFile = 'topics.json';
     
-    if (file_exists($topicsFile)) {
-        $topicsData = file_get_contents($topicsFile);
-        $topics = json_decode($topicsData, true);
-        if (!is_array($topics)) {
-            return;
-        }
-        
-        foreach ($topics as &$topic) {
-            if ($topic['id'] === $topicId) {
-                $topic['comments']++;
-                break;
-            }
-        }
-        
-        file_put_contents($topicsFile, json_encode($topics, JSON_PRETTY_PRINT));
+    $topics = readJsonFile($topicsFile);
+    if (empty($topics)) {
+        return;
     }
+    
+    foreach ($topics as &$topic) {
+        if ($topic['id'] === $topicId) {
+            $topic['comments']++;
+            break;
+        }
+    }
+    
+    saveJsonFile($topicsFile, $topics);
 }
 ?>

@@ -5,18 +5,20 @@ session_start();
 // 设置响应类型为JSON
 header('Content-Type: application/json');
 
+// 引入工具函数
+require_once 'utils.php';
+
 // 话题数据文件
 $topicsFile = 'topics.json';
 
 // 创建话题
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 检查用户是否登录
-    if (!isset($_SESSION['login'])) {
-        echo json_encode([
+    if (!isUserLoggedIn()) {
+        jsonResponse([
             'success' => false,
             'message' => '请先登录'
         ]);
-        exit;
     }
     
     // 获取话题数据
@@ -30,11 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 简单验证
     if (empty($title) || empty($category) || empty($content)) {
-        echo json_encode([
+        jsonResponse([
             'success' => false,
             'message' => '标题、分类和内容不能为空'
         ]);
-        exit;
     }
     
     // 处理标签
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'anonymous' => $anonymous,
         'top' => $top,
         'disableComment' => $disableComment,
-        'author' => $anonymous ? '匿名用户' : $_SESSION['login'],
+        'author' => $anonymous ? '匿名用户' : getCurrentUser(),
         'timestamp' => time() * 1000, // JavaScript时间戳格式
         'views' => 0,
         'likes' => 0,
@@ -65,39 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     
     // 读取话题文件
-    $topics = [];
-    if (file_exists($topicsFile)) {
-        $topicsData = file_get_contents($topicsFile);
-        if ($topicsData !== false) {
-            $topics = json_decode($topicsData, true);
-            if (!is_array($topics)) {
-                $topics = [];
-            }
-        }
-    }
+    $topics = readJsonFile($topicsFile, []);
     
     // 添加新话题
     $topics[] = $topic;
     
-    // 确保目录存在且有写入权限
-    $directory = dirname($topicsFile);
-    if (!is_dir($directory)) {
-        mkdir($directory, 0755, true);
-    }
-    
     // 保存到文件
-    $jsonData = json_encode($topics, JSON_PRETTY_PRINT);
-    if ($jsonData === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => '话题发布失败，JSON编码错误'
-        ]);
-        exit;
-    }
-    
-    $result = file_put_contents($topicsFile, $jsonData);
+    $result = saveJsonFile($topicsFile, $topics);
     if ($result !== false) {
-        echo json_encode([
+        jsonResponse([
             'success' => true,
             'message' => '话题发布成功',
             'topicId' => $topic['id']
@@ -107,11 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMsg = '话题发布失败，无法保存数据';
         if (!is_writable($topicsFile) && file_exists($topicsFile)) {
             $errorMsg .= '（文件无写入权限）';
-        } else if (!is_writable($directory)) {
+        } else if (!is_writable(dirname($topicsFile))) {
             $errorMsg .= '（目录无写入权限）';
         }
         
-        echo json_encode([
+        jsonResponse([
             'success' => false,
             'message' => $errorMsg
         ]);
@@ -123,15 +100,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
     $sortBy = isset($_GET['sortBy']) ? $_GET['sortBy'] : 'newest';
     
     // 读取话题文件
-    if (file_exists($topicsFile)) {
-        $topicsData = file_get_contents($topicsFile);
-        $topics = json_decode($topicsData, true);
-        if (!is_array($topics)) {
-            $topics = [];
-        }
-    } else {
-        $topics = [];
-    }
+    $topics = readJsonFile($topicsFile, []);
     
     // 按分类筛选
     if ($category !== 'all') {
@@ -183,7 +152,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
         $topics = $filteredTopics;
     }
     
-    echo json_encode([
+    jsonResponse([
         'success' => true,
         'topics' => $topics
     ]);
@@ -193,65 +162,43 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     $topicId = $_GET['id'];
     
     // 读取话题文件
-    if (file_exists($topicsFile)) {
-        $topicsData = file_get_contents($topicsFile);
-        $topics = json_decode($topicsData, true);
-        if (!is_array($topics)) {
-            $topics = [];
-        }
-        
-        // 查找指定话题
-        $topic = null;
-        foreach ($topics as &$t) {
-            if ($t['id'] === $topicId) {
-                // 增加浏览量
-                $t['views']++;
-                $topic = $t;
-                break;
-            }
-        }
-        
-        // 保存更新后的话题列表（浏览量增加）
-        if ($topic) {
-            file_put_contents($topicsFile, json_encode($topics, JSON_PRETTY_PRINT));
-            
-            echo json_encode([
-                'success' => true,
-                'topic' => $topic
-            ]);
-        } else {
-            echo json_encode([
-                'success' => false,
-                'message' => '话题不存在'
-            ]);
-        }
-    } else {
-        echo json_encode([
+    $topics = readJsonFile($topicsFile);
+    if (empty($topics)) {
+        jsonResponse([
             'success' => false,
-            'message' => '话题数据文件不存在'
+            'message' => '话题数据文件不存在或为空'
+        ]);
+    }
+    
+    // 查找指定话题
+    $topic = null;
+    foreach ($topics as &$t) {
+        if ($t['id'] === $topicId) {
+            // 增加浏览量
+            $t['views']++;
+            $topic = $t;
+            break;
+        }
+    }
+    
+    // 保存更新后的话题列表（浏览量增加）
+    if ($topic) {
+        saveJsonFile($topicsFile, $topics);
+        
+        jsonResponse([
+            'success' => true,
+            'topic' => $topic
+        ]);
+    } else {
+        jsonResponse([
+            'success' => false,
+            'message' => '话题不存在'
         ]);
     }
 } else {
-    echo json_encode([
+    jsonResponse([
         'success' => false,
         'message' => '请求方法不允许或参数错误'
     ]);
-}
-
-// 辅助函数：根据分类代码获取分类名称
-function getCategoryName($category) {
-    $categoryNames = [
-        'campus_life' => '校园生活',
-        'study' => '学习交流',
-        'emotion' => '情感树洞',
-        'career' => '就业考研',
-        'entertainment' => '娱乐休闲',
-        'secondhand' => '二手交易',
-        'lost_found' => '失物招领',
-        'suggestion' => '建议反馈',
-        'other' => '其他'
-    ];
-    
-    return isset($categoryNames[$category]) ? $categoryNames[$category] : '其他';
 }
 ?>
