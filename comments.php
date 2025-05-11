@@ -5,8 +5,8 @@ session_start();
 // 引入工具函数
 require_once 'utils.php';
 
-// 评论数据文件前缀
-$commentsFilePrefix = 'comments_';
+// 统一的评论数据文件
+$commentsFile = 'comments.json';
 
 // 发表评论
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -40,17 +40,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'likes' => 0
     ];
     
-    // 评论文件名
-    $commentsFile = $commentsFilePrefix . $topicId . '.json';
+    // 读取所有评论
+    $allComments = readJsonFile($commentsFile, []);
     
-    // 读取评论文件
-    $comments = readJsonFile($commentsFile, []);
+    // 如果没有当前话题的评论数组，创建一个
+    if (!isset($allComments[$topicId])) {
+        $allComments[$topicId] = [];
+    }
     
-    // 添加新评论
-    $comments[] = $comment;
+    // 添加新评论到对应话题
+    $allComments[$topicId][] = $comment;
     
     // 保存到文件
-    $saveResult = saveJsonFile($commentsFile, $comments);
+    $saveResult = saveJsonFile($commentsFile, $allComments);
     if ($saveResult) {
         // 更新话题评论数
         updateTopicCommentCount($topicId);
@@ -88,15 +90,15 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         ]);
     }
     
-    // 评论文件名
-    $commentsFile = $commentsFilePrefix . $topicId . '.json';
+    // 读取所有评论
+    $allComments = readJsonFile($commentsFile, []);
     
-    // 读取评论文件
-    $comments = readJsonFile($commentsFile, []);
+    // 获取特定话题的评论，如果不存在则返回空数组
+    $topicComments = isset($allComments[$topicId]) ? $allComments[$topicId] : [];
     
     jsonResponse([
         'success' => true,
-        'comments' => $comments
+        'comments' => $topicComments
     ]);
 } else {
     jsonResponse([
