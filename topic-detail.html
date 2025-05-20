@@ -12,18 +12,8 @@
     <header>
         <div class="container header-content">
             <a href="home.html" class="logo">
-                <img src="https://placeholder.com/40" alt="吉大树洞Logo">
                 <h1>吉大树洞</h1>
             </a>
-            
-            <nav>
-                <ul>
-                    <li><a href="home.html">首页</a></li>
-                    <li><a href="#">热门话题</a></li>
-                    <li><a href="#">最新动态</a></li>
-                    <li><a href="#">树洞指南</a></li>
-                </ul>
-            </nav>
             
             <div class="user-actions">
                 <!-- 这里会通过JS动态更新用户登录状态 -->
@@ -33,6 +23,7 @@
 
     <div class="container">
         <div class="page-container topic-detail-container">
+            <a href="javascript:history.back();" class="nav-link-top-left button-styled-back">返回</a>
             <!-- 话题详情区域 -->
             <div id="topicDetail" class="topic-detail">
                 <div class="loading">正在加载话题内容...</div>
@@ -85,8 +76,6 @@
                     </div>
                 </form>
             </div>
-            
-            <a href="home.html" class="nav-link">返回首页</a>
         </div>
     </div>
     
@@ -153,6 +142,13 @@
                         // 处理话题内容，确保HTML安全并正确显示换行
                         const safeContent = safeHtml(post.content).replace(/\n/g, '<br>');
                         
+                        // 构建图片HTML
+                        const imagesHtml = post.images && post.images.length > 0 
+                            ? `<div class="topic-images-container">
+                                ${post.images.map(imgPath => `<img src="${safeHtml(imgPath)}" alt="话题图片" class="topic-image" onclick="openImageModal(this.src)">`).join('')}
+                               </div>`
+                            : '';
+
                         // 添加作者信息、浏览量等
                         const topicHtml = `
                             <div class="topic-header">
@@ -165,6 +161,7 @@
                                 <span class="topic-views">浏览 ${post.views}</span>
                             </div>
                             <div class="topic-full-content">${safeContent}</div>
+                            ${imagesHtml}
                             ${tagsHtml}
                             <div class="topic-stats">
                                 <button id="likeButton" class="action-button" onclick="likeTopic('${topicId}')">
@@ -269,12 +266,20 @@
                             // 处理评论内容，确保HTML安全并正确显示换行
                             const safeContent = safeHtml(comment.content).replace(/\n/g, '<br>');
                             
+                            // 构建评论图片HTML
+                            const commentImagesHtml = comment.images && comment.images.length > 0
+                                ? `<div class="comment-images-container">
+                                    ${comment.images.map(imgPath => `<img src="${safeHtml(imgPath)}" alt="评论图片" class="comment-image" onclick="openImageModal(this.src)">`).join('')}
+                                   </div>`
+                                : '';
+
                             commentEl.innerHTML = `
                                 <div class="comment-header">
                                     <span class="comment-author">${safeHtml(comment.author)}</span>
                                     <span class="comment-time">${formatTime(comment.timestamp)}</span>
                                 </div>
                                 <div class="comment-content">${safeContent}</div>
+                                ${commentImagesHtml}
                                 <div class="comment-footer">
                                     <button class="comment-like" onclick="likeComment('${topicId}', '${comment.id}', event)">
                                         点赞 <span>${comment.likes || 0}</span>
@@ -355,6 +360,7 @@
             const topicId = getTopicId();
             const content = document.getElementById('reply_content').value.trim();
             const anonymous = document.getElementById('anonymous').checked;
+            const imagesInput = document.getElementById('images'); // 获取文件输入元素
             
             if (!content) {
                 alert('评论内容不能为空');
@@ -365,11 +371,17 @@
             messageEl.style.display = 'none';
             
             // 创建表单数据
-            const formData = {
-                topicId: topicId,
-                content: content,
-                anonymous: anonymous ? '1' : '0'
-            };
+            const formData = new FormData(); // 改为 FormData 对象
+            formData.append('topicId', topicId);
+            formData.append('content', content);
+            formData.append('anonymous', anonymous ? '1' : '0');
+            
+            // 追加图片文件
+            if (imagesInput.files.length > 0) {
+                for (let i = 0; i < imagesInput.files.length; i++) {
+                    formData.append('images[]', imagesInput.files[i]);
+                }
+            }
             
             // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'comments.php', formData,
@@ -384,6 +396,7 @@
                         document.getElementById('reply_content').value = '';
                         document.getElementById('preview-container').innerHTML = '';
                         document.getElementById('file-count').textContent = '未选择文件';
+                        imagesInput.value = ''; // 重置文件输入框
                         
                         // 重新加载评论
                         setTimeout(() => {
@@ -414,7 +427,31 @@
             // 加载话题详情
             loadTopicDetail();
         });
+
+        // 打开图片模态框
+        function openImageModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImageSrc');
+            if (modal && modalImg) {
+                modal.style.display = "block";
+                modalImg.src = src;
+            }
+        }
+
+        // 关闭图片模态框
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
+
+    <!-- 图片模态框 -->
+    <div id="imageModal" class="image-modal">
+        <span class="close-modal-btn" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content-image" id="modalImageSrc">
+    </div>
 
     <style>
         /* 删除按钮样式 */
@@ -448,6 +485,87 @@
         .reply-form-section textarea {
             width: 100%;
             box-sizing: border-box;
+        }
+
+        /* 图片容器和图片样式 */
+        .topic-images-container, .comment-images-container {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px; /* 图片之间的间隙 */
+        }
+
+        .topic-image, .comment-image {
+            max-width: 150px; /* 限制图片最大宽度 */
+            max-height: 150px; /* 限制图片最大高度 */
+            border-radius: 4px; /* 图片圆角 */
+            object-fit: cover; /* 保持图片比例并填充 */
+            border: 1px solid #ddd; /* 图片边框 */
+            cursor: pointer; /* 添加手型光标 */
+        }
+
+        /* 图片模态框样式 */
+        .image-modal {
+            display: none; /* 默认隐藏 */
+            position: fixed; /* 固定定位 */
+            z-index: 1001; /* 置于顶层 */
+            padding-top: 50px; /* 顶部内边距 */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; /* 内容溢出时显示滚动条 */
+            background-color: rgba(0,0,0,0.85); /* 半透明黑色背景 */
+        }
+
+        .modal-content-image {
+            margin: auto;
+            display: block;
+            max-width: 85%;
+            max-height: 85vh; /* 最大高度为视窗高度的85% */
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .close-modal-btn:hover,
+        .close-modal-btn:focus {
+            color: #bbb;
+            text-decoration: none;
+        }
+        
+        /* 新增样式，用于左上角返回按钮 */
+        .nav-link-top-left {
+            display: inline-block; 
+            margin-bottom: 20px; /* 增加与下方内容的间距 */
+            text-align: left; 
+        }
+
+        .button-styled-back {
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            border: 1px solid #ccc;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .button-styled-back:hover {
+            background-color: #e0e0e0;
+            color: #1e3a8a;
+            border-color: #adadad;
+            text-decoration: none;
         }
     </style>
 </body>

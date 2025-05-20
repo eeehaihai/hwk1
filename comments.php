@@ -32,9 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // 创建评论对象
+    $commentId = uniqid(); // 为评论生成唯一ID
+    // 使用 topicId 作为 entityId 来组织评论图片到对应话题的文件夹下
+    $uploadedImages = handleFileUploads('images', 'comment', $topicId); 
+
     $comment = [
-        'id' => uniqid(),
+        'id' => $commentId,
+        // 'topicId' => $topicId, // 如果需要，可以存储topicId，但目前comments.json结构是以topicId为键
         'content' => $content,
+        'images' => $uploadedImages, // 添加图片路径
         'author' => $anonymous ? '匿名用户' : getCurrentUser(),
         'timestamp' => time() * 1000, // JavaScript时间戳格式
         'likes' => 0

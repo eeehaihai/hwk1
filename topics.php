@@ -48,13 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // 创建话题对象
+    $topicId = uniqid(); // 首先生成ID，以便用于图片存储路径
+    $uploadedImages = handleFileUploads('images', 'topic', $topicId);
+
     $topic = [
-        'id' => uniqid(),
+        'id' => $topicId,
         'title' => $title,
         'category' => $category,
         'categoryName' => getCategoryName($category),
         'content' => $content,
         'tags' => $cleanTags,
+        'images' => $uploadedImages, // 添加图片路径
         'anonymous' => $anonymous,
         'top' => $top,
         'disableComment' => $disableComment,

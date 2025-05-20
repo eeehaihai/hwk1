@@ -93,7 +93,6 @@ header {
 .logo h1 {
     margin: 0;
     font-size: 24px;
-    margin-left: 10px;
 }
 
 logo img {
@@ -186,11 +185,20 @@ nav a:hover {
 }
 
 .search-box button {
-    background-color: #f0f0f0;
+    background-color: #ddd; /* 更改背景颜色使其更明显 */
+    color: #333; /* 更改图标颜色 */
     border: none;
-    padding: 0 20px;
+    padding: 0 18px; /* 调整内边距以适应图标 */
     border-radius: 0 4px 4px 0;
     cursor: pointer;
+    font-size: 18px; /* 调整图标大小 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-box button:hover {
+    background-color: #ccc; /* 鼠标悬停时颜色变深 */
 }
 
 .create-topic-btn {
@@ -975,4 +983,22 @@ input[type="radio"]:checked + .radio-label {
     .sidebar {
         width: 100%;
     }
+}
+
+/* 图片容器和图片样式 (如果需要在全局CSS中定义) */
+.topic-images-container, .comment-images-container {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* 图片之间的间隙 */
+}
+
+.topic-image, .comment-image {
+    max-width: 150px; /* 限制图片最大宽度 */
+    max-height: 150px; /* 限制图片最大高度 */
+    border-radius: 4px; /* 图片圆角 */
+    object-fit: cover; /* 保持图片比例并填充 */
+    border: 1px solid #ddd; /* 图片边框 */
+    cursor: pointer; /* 可选：点击放大效果的提示 */
 }

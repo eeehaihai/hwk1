@@ -12,18 +12,8 @@
     <header>
         <div class="container header-content">
             <a href="home.html" class="logo">
-                <img src="https://placeholder.com/40" alt="吉大树洞Logo">
                 <h1>吉大树洞</h1>
             </a>
-            
-            <nav>
-                <ul>
-                    <li><a href="home.html" class="active">首页</a></li>
-                    <li><a href="#">热门话题</a></li>
-                    <li><a href="#">最新动态</a></li>
-                    <li><a href="#">树洞指南</a></li>
-                </ul>
-            </nav>
             
             <div class="user-actions">
                 <!-- 这里会通过JS动态更新用户登录状态 -->
@@ -37,7 +27,7 @@
             <h2>探索校园里的奇闻趣事与生活点滴</h2>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="搜索话题、关键词...">
-                <button onclick="searchPosts()">搜索</button>
+                <button onclick="searchPosts()" class="search-icon-btn">🔍</button>
             </div>
         </div>
     </section>
@@ -53,14 +43,13 @@
                     <a href="#" class="active" data-category="all">全部</a>
                     <a href="#" data-category="campus_life">校园生活</a>
                     <a href="#" data-category="study">学习交流</a>
-                    <a href="#" data-category="emotion">情感树洞</a>
-                    <a href="#" data-category="career">就业考研</a>
                     <a href="#" data-category="secondhand">二手交易</a>
+                    <a href="#" data-category="lost_found">失物招领</a>
                 </div>
                 <div class="sort-options">
                     <a href="#" class="active" data-sort="newest">最新</a>
                     <a href="#" data-sort="hottest">热门</a>
-                    <a href="#" data-sort="featured">精华</a>
+                    <!-- <a href="#" data-sort="featured">精华</a> -->
                 </div>
             </div>
             
@@ -139,6 +128,13 @@
             
             // 加载活跃用户
             loadActiveUsers();
+
+            // 恢复滚动位置
+            const scrollPosition = sessionStorage.getItem('homeScrollPosition');
+            if (scrollPosition) {
+                window.scrollTo(0, parseInt(scrollPosition, 10));
+                sessionStorage.removeItem('homeScrollPosition'); // 使用后清除
+            }
             
             // 设置分类筛选点击事件
             document.querySelectorAll('.filter-options a').forEach(link => {
@@ -182,6 +178,7 @@
         
         // 查看话题详情
         function viewTopic(id) {
+            sessionStorage.setItem('homeScrollPosition', window.scrollY); // 保存滚动位置
             window.location.href = `topic-detail.html?id=${id}`;
         }
         
@@ -213,7 +210,7 @@
                         <span>评论 ${post.comments || 0}</span>
                     </div>
                     <div class="topic-action">
-                        <a href="topic-detail.html?id=${post.id}">参与讨论</a>
+                        <a href="#" onclick="event.preventDefault(); event.stopPropagation(); viewTopic('${post.id}');">参与讨论</a>
                     </div>
                 </div>
             `;
@@ -298,41 +295,42 @@
                 const categoryCounts = {
                     'campus_life': 0,
                     'study': 0,
-                    'emotion': 0,
-                    'career': 0,
-                    'entertainment': 0,
                     'secondhand': 0,
-                    'lost_found': 0,
-                    'suggestion': 0,
-                    'other': 0
+                    'lost_found': 0
+                    // 'emotion': 0, // Removed
+                    // 'career': 0, // Removed
+                    // 'entertainment': 0, // Removed
+                    // 'suggestion': 0, // Removed
+                    // 'other': 0 // Removed
                 };
                 
                 posts.forEach(post => {
                     if (categoryCounts.hasOwnProperty(post.category)) {
                         categoryCounts[post.category]++;
-                    } else {
-                        categoryCounts['other']++;
-                    }
+                    } 
+                    // else { // Removed 'other' handling for sidebar
+                    //     categoryCounts['other']++;
+                    // }
                 });
                 
                 // 显示分类统计
                 const categoryNames = {
                     'campus_life': '校园生活',
                     'study': '学习交流',
-                    'emotion': '情感树洞',
-                    'career': '就业考研',
-                    'entertainment': '娱乐休闲',
                     'secondhand': '二手交易',
-                    'lost_found': '失物招领',
-                    'suggestion': '建议反馈',
-                    'other': '其他'
+                    'lost_found': '失物招领'
+                    // 'emotion': '情感树洞', // Removed
+                    // 'career': '就业考研', // Removed
+                    // 'entertainment': '娱乐休闲', // Removed
+                    // 'suggestion': '建议反馈', // Removed
+                    // 'other': '其他' // Removed
                 };
                 
                 categoryCountsEl.innerHTML = '';
                 
-                for (const category in categoryCounts) {
-                    if (categoryCounts.hasOwnProperty(category)) {
-                        const count = categoryCounts[category];
+                for (const category in categoryNames) { // Iterate over categoryNames to maintain order and selection
+                    if (categoryNames.hasOwnProperty(category)) {
+                        const count = categoryCounts[category] || 0; // Default to 0 if no posts in category
                         const li = document.createElement('li');
                         li.innerHTML = `<a href="#" data-category="${category}">${categoryNames[category]} <span class="category-count">${count}</span></a>`;
                         
@@ -363,6 +361,9 @@
             const hotTopicsEl = document.getElementById('hotTopics');
             
             getAllPosts(function(posts) {
+                // 计算一周前的时间戳
+                const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                
                 // 按热度排序（浏览量+点赞数*2）
                 posts.sort((a, b) => (b.views + b.likes * 2) - (a.views + a.likes * 2));
                 

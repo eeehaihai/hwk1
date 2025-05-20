@@ -9,10 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     $email = isset($_POST['email']) ? $_POST['email'] : '';
     $phone = isset($_POST['phone']) ? $_POST['phone'] : '';
-    $nickname = isset($_POST['nickname']) ? $_POST['nickname'] : '';
+    $nickname = isset($_POST['nickname']) ? $_POST['nickname'] : ''; // 保留昵称
     
     // 简单验证
-    if (empty($username) || empty($password) || empty($email) || empty($phone)) {
+    if (empty($username) || empty($password) || empty($email) || empty($phone) || empty($nickname)) { // 添加昵称验证
         echo json_encode([
             'success' => false,
             'message' => '请填写所有必填字段'
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'password' => $password,
         'email' => $email,
         'phone' => $phone,
-        'nickname' => $nickname,
+        'nickname' => $nickname, // 保留昵称
         'registerTime' => date('Y-m-d H:i:s')
     ];
     
