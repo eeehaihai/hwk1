@@ -69,16 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'comment' => $comment
         ]);
     } else {
-        // 获取更详细的错误信息
-        $errorMsg = '评论发表失败，无法保存数据';
-        
-        // 检查文件和目录权限
-        if (!is_writable(dirname($commentsFile))) {
-            $errorMsg .= "（目录无写入权限: " . dirname($commentsFile) . "）";
-        } elseif (file_exists($commentsFile) && !is_writable($commentsFile)) {
-            $errorMsg .= "（文件无写入权限: $commentsFile）";
-        }
-        
+        // 使用新的工具函数获取详细错误信息
+        $errorMsg = getDetailedSaveError($commentsFile, '评论发表失败，无法保存数据');
         jsonResponse([
             'success' => false,
             'message' => $errorMsg

@@ -57,7 +57,6 @@
                             <a href="#" data-timerange="1y">一年内 <span class="checkmark"></span></a>
                         </div>
                     </div>
-                    <!-- <a href="#" data-sort="featured">精华</a> -->
                 </div>
             </div>
             
@@ -125,17 +124,22 @@
             // 更新导航栏用户状态
             updateNavUserStatus();
             
-            // 加载并显示话题列表
-            loadTopics();
+            // 加载并显示话题列表 (默认排序和分类)
+            loadTopics(); 
             
-            // 加载分类统计
-            updateCategoryCounts();
-            
-            // 加载热门话题
-            loadHotTopics();
-            
-            // 加载活跃用户
-            loadActiveUsers();
+            // 获取所有帖子数据一次，然后传递给侧边栏更新函数
+            getAllPosts(function(allPostsData) {
+                if (allPostsData && allPostsData.length > 0) {
+                    updateCategoryCounts(allPostsData);
+                    loadHotTopics(allPostsData);
+                    loadActiveUsers(allPostsData);
+                } else {
+                    // 处理获取数据失败或无数据的情况
+                    document.getElementById('categoryCounts').innerHTML = '<li>无法加载分类</li>';
+                    document.getElementById('hotTopics').innerHTML = '<li>无法加载热门话题</li>';
+                    document.getElementById('activeUsers').innerHTML = '<li>无法加载活跃用户</li>';
+                }
+            });
 
             // 恢复滚动位置
             const scrollPosition = sessionStorage.getItem('homeScrollPosition');
@@ -377,7 +381,7 @@
         }
         
         // 更新分类统计
-        function updateCategoryCounts() {
+        function updateCategoryCounts(posts) { // 接收 posts 数据作为参数
             const categoryCountsEl = document.getElementById('categoryCounts');
             // 确保在加载热门话题之前，默认选中“一星期”
             const defaultTimeRangeLink = document.querySelector('.hottest-tooltip a[data-timerange="1w"]');
@@ -386,147 +390,109 @@
                 defaultTimeRangeLink.querySelector('.checkmark').textContent = '√';
             }
             
-            getAllPosts(function(posts) {
-                // 统计每个分类的数量
-                const categoryCounts = {
-                    'campus_life': 0,
-                    'study': 0,
-                    'secondhand': 0,
-                    'lost_found': 0
-                    // 'emotion': 0, // Removed
-                    // 'career': 0, // Removed
-                    // 'entertainment': 0, // Removed
-                    // 'suggestion': 0, // Removed
-                    // 'other': 0 // Removed
-                };
-                
-                posts.forEach(post => {
-                    if (categoryCounts.hasOwnProperty(post.category)) {
-                        categoryCounts[post.category]++;
-                    } 
-                    // else { // Removed 'other' handling for sidebar
-                    //     categoryCounts['other']++;
-                    // }
-                });
-                
-                // 显示分类统计
-                const categoryNames = {
-                    'campus_life': '校园生活',
-                    'study': '学习交流',
-                    'secondhand': '二手交易',
-                    'lost_found': '失物招领'
-                    // 'emotion': '情感树洞', // Removed
-                    // 'career': '就业考研', // Removed
-                    // 'entertainment': '娱乐休闲', // Removed
-                    // 'suggestion': '建议反馈', // Removed
-                    // 'other': '其他' // Removed
-                };
-                
-                categoryCountsEl.innerHTML = '';
-                
-                for (const category in categoryNames) { // Iterate over categoryNames to maintain order and selection
-                    if (categoryNames.hasOwnProperty(category)) {
-                        const count = categoryCounts[category] || 0; // Default to 0 if no posts in category
-                        const li = document.createElement('li');
-                        li.innerHTML = `<a href="#" data-category="${category}">${categoryNames[category]} <span class="category-count">${count}</span></a>`;
-                        
-                        // 添加点击事件
-                        li.querySelector('a').addEventListener('click', function(e) {
-                            e.preventDefault();
-                            
-                            // 更新filter-options的active状态
-                            document.querySelectorAll('.filter-options a').forEach(link => {
-                                link.classList.remove('active');
-                                if (link.getAttribute('data-category') === category) {
-                                    link.classList.add('active');
-                                }
-                            });
-                            
-                            // 加载对应分类的话题
-                            loadTopics(category);
-                        });
-                        
-                        categoryCountsEl.appendChild(li);
-                    }
+            categoryCountsEl.innerHTML = ''; // 清空现有列表
+            
+            // 统计每个分类的数量
+            const categoryCounts = {
+                'campus_life': 0,
+                'study': 0,
+                'secondhand': 0,
+                'lost_found': 0
+            };
+            
+            posts.forEach(post => {
+                if (categoryCounts.hasOwnProperty(post.category)) {
+                    categoryCounts[post.category]++;
                 }
             });
+            
+            // 显示分类统计
+            const categoryNames = {
+                'campus_life': '校园生活',
+                'study': '学习交流',
+                'secondhand': '二手交易',
+                'lost_found': '失物招领'
+            };
+            
+            for (const category in categoryNames) { // Iterate over categoryNames to maintain order and selection
+                if (categoryNames.hasOwnProperty(category)) {
+                    const count = categoryCounts[category] || 0;
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="#" data-category="${category}">${categoryNames[category]} <span class="category-count">${count}</span></a>`;
+                    
+                    li.querySelector('a').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.querySelectorAll('.filter-options a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('data-category') === category) {
+                                link.classList.add('active');
+                            }
+                        });
+                        loadTopics(category);
+                    });
+                    categoryCountsEl.appendChild(li);
+                }
+            }
         }
         
         // 加载热门话题
-        function loadHotTopics() {
+        function loadHotTopics(posts) { // 接收 posts 数据作为参数
             const hotTopicsEl = document.getElementById('hotTopics');
             
-            getAllPosts(function(posts) {
-                // 计算一周前的时间戳
-                const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-                
-                // 按热度排序（浏览量+点赞数*2）
-                posts.sort((a, b) => (b.views + b.likes * 2) - (a.views + a.likes * 2));
-                
-                // 只显示前5个热门话题
-                const topPosts = posts.slice(0, 5);
-                
-                hotTopicsEl.innerHTML = '';
-                
-                if (topPosts.length === 0) {
-                    hotTopicsEl.innerHTML = '<li>暂无热门话题</li>';
-                    return;
-                }
-                
-                topPosts.forEach(post => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<a href="#">${safeHtml(post.title)}</a>`;
-                    
-                    // 点击查看详情
-                    li.querySelector('a').addEventListener('click', function(e) {
-                        e.preventDefault();
-                        viewTopic(post.id);
-                    });
-                    
-                    hotTopicsEl.appendChild(li);
+            hotTopicsEl.innerHTML = ''; // 清空现有列表
+            
+            // 按热度排序（浏览量+点赞数*2）
+            const sortedPosts = [...posts].sort((a, b) => (b.views + (b.likes || 0) * 2) - (a.views + (a.likes || 0) * 2));
+            
+            // 只显示前5个热门话题
+            const topPosts = sortedPosts.slice(0, 5);
+            
+            if (topPosts.length === 0) {
+                hotTopicsEl.innerHTML = '<li>暂无热门话题</li>';
+                return;
+            }
+            
+            topPosts.forEach(post => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#">${safeHtml(post.title)}</a>`;
+                li.querySelector('a').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    viewTopic(post.id);
                 });
+                hotTopicsEl.appendChild(li);
             });
         }
         
         // 加载活跃用户
-        function loadActiveUsers() {
+        function loadActiveUsers(posts) { // 接收 posts 数据作为参数
             const activeUsersEl = document.getElementById('activeUsers');
             
-            getAllPosts(function(posts) {
-                // 统计每个用户的帖子数量（排除匿名用户）
-                const userPostCounts = {};
-                
-                posts.forEach(post => {
-                    if (post.author !== '匿名用户') {
-                        userPostCounts[post.author] = (userPostCounts[post.author] || 0) + 1;
-                    }
-                });
-                
-                // 转换为数组并排序
-                const users = Object.keys(userPostCounts).map(user => {
-                    return {
-                        username: user,
-                        postCount: userPostCounts[user]
-                    };
-                });
-                
-                users.sort((a, b) => b.postCount - a.postCount);
-                
-                // 只显示前5个活跃用户
-                const topUsers = users.slice(0, 5);
-                
-                activeUsersEl.innerHTML = '';
-                
-                if (topUsers.length === 0) {
-                    activeUsersEl.innerHTML = '<li>暂无活跃用户</li>';
-                    return;
+            activeUsersEl.innerHTML = ''; // 清空现有列表
+            
+            const userPostCounts = {};
+            posts.forEach(post => {
+                if (post.author && post.author !== '匿名用户') {
+                    userPostCounts[post.author] = (userPostCounts[post.author] || 0) + 1;
                 }
-                
-                topUsers.forEach(user => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<a href="#">${safeHtml(user.username)} <span class="category-count">${user.postCount}</span></a>`;
-                    activeUsersEl.appendChild(li);
-                });
+            });
+            
+            const users = Object.keys(userPostCounts).map(user => ({
+                username: user,
+                postCount: userPostCounts[user]
+            })).sort((a, b) => b.postCount - a.postCount);
+            
+            const topUsers = users.slice(0, 5);
+            
+            if (topUsers.length === 0) {
+                activeUsersEl.innerHTML = '<li>暂无活跃用户</li>';
+                return;
+            }
+            
+            topUsers.forEach(user => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#">${safeHtml(user.username)} <span class="category-count">${user.postCount}</span></a>`;
+                // 可选：为活跃用户添加点击事件，例如跳转到用户主页（如果未来有此功能）
+                activeUsersEl.appendChild(li);
             });
         }
         

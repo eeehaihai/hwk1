@@ -84,14 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'topicId' => $topic['id']
         ]);
     } else {
-        // 检查文件权限
-        $errorMsg = '话题发布失败，无法保存数据';
-        if (!is_writable($topicsFile) && file_exists($topicsFile)) {
-            $errorMsg .= '（文件无写入权限）';
-        } else if (!is_writable(dirname($topicsFile))) {
-            $errorMsg .= '（目录无写入权限）';
-        }
-        
+        // 使用新的工具函数获取详细错误信息
+        $errorMsg = getDetailedSaveError($topicsFile, '话题发布失败，无法保存数据');
         jsonResponse([
             'success' => false,
             'message' => $errorMsg

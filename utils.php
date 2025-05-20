@@ -81,6 +81,28 @@ function saveJsonFile($filePath, $data) {
 }
 
 /**
+ * 获取文件保存失败时的详细错误信息
+ * @param string $filePath 目标文件路径
+ * @param string $defaultMessage 默认的错误消息
+ * @return string 详细的错误消息
+ */
+function getDetailedSaveError($filePath, $defaultMessage = '操作失败，无法保存数据') {
+    $errorMsg = $defaultMessage;
+    $directory = dirname($filePath);
+
+    if (!is_writable($directory)) {
+        $errorMsg .= "（目录无写入权限: " . htmlspecialchars($directory) . "）";
+    } elseif (file_exists($filePath) && !is_writable($filePath)) {
+        $errorMsg .= "（文件无写入权限: " . htmlspecialchars($filePath) . "）";
+    } elseif (!file_exists($filePath) && !is_writable($directory)) {
+        // 文件不存在，且目录不可写（通常意味着无法创建文件）
+        $errorMsg .= "（目录无写入权限，无法创建文件: " . htmlspecialchars($directory) . "）";
+    }
+    // 可以根据需要添加更多具体的错误检查
+    return $errorMsg;
+}
+
+/**
  * 返回JSON响应
  */
 function jsonResponse($data) {

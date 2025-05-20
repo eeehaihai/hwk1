@@ -36,9 +36,8 @@ $currentUser = getCurrentUser();
 
 // 话题数据文件
 $topicsFile = 'topics.json';
-
-// 评论文件
-$commentsFile = 'comments_' . $topicId . '.json';
+// 统一的评论数据文件
+$commentsFile = 'comments.json';
 
 // 读取话题数据
 $topics = readJsonFile($topicsFile);
@@ -79,11 +78,43 @@ array_splice($topics, $topicIndex, 1);
 
 // 保存更新后的话题数据
 if (saveJsonFile($topicsFile, $topics)) {
-    // 如果存在评论文件，也可以删除
-    if (file_exists($commentsFile)) {
-        unlink($commentsFile);
+    // 从 comments.json 中删除与此话题相关的评论
+    $allComments = readJsonFile($commentsFile, []);
+    if (isset($allComments[$topicId])) {
+        unset($allComments[$topicId]);
+        saveJsonFile($commentsFile, $allComments); // 保存更新后的评论数据
     }
     
+    // 删除话题相关的图片目录 (如果存在)
+    $topicImageDir = 'uploads/topics/' . $topicId . '/';
+    if (is_dir($topicImageDir)) {
+        // 简单的递归删除目录函数 (实际项目中可能需要更健壮的实现)
+        function deleteDirectory($dir) {
+            if (!file_exists($dir)) {
+                return true;
+            }
+            if (!is_dir($dir)) {
+                return unlink($dir);
+            }
+            foreach (scandir($dir) as $item) {
+                if ($item == '.' || $item == '..') {
+                    continue;
+                }
+                if (!deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                    return false;
+                }
+            }
+            return rmdir($dir);
+        }
+        deleteDirectory($topicImageDir);
+    }
+    // 删除评论相关的图片目录 (如果存在)
+    $commentImageDir = 'uploads/comments/' . $topicId . '/';
+     if (is_dir($commentImageDir)) {
+        // 使用上面定义的 deleteDirectory 函数
+        deleteDirectory($commentImageDir);
+    }
+
     jsonResponse([
         'success' => true,
         'message' => '帖子删除成功'
@@ -91,7 +122,7 @@ if (saveJsonFile($topicsFile, $topics)) {
 } else {
     jsonResponse([
         'success' => false,
-        'message' => '帖子删除失败，无法保存数据'
+        'message' => getDetailedSaveError($topicsFile, '帖子删除失败，无法保存数据')
     ]);
 }
 ?>

@@ -93,9 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'message' => '注册成功'
         ]);
     } else {
+        // 使用 getDetailedSaveError 获取详细错误信息
+        $errorMsg = getDetailedSaveError($usersFile, '注册失败，无法保存用户数据');
         echo json_encode([
             'success' => false,
-            'message' => '注册失败，无法保存用户数据'
+            'message' => $errorMsg
         ]);
     }
 } else {
