@@ -48,7 +48,15 @@
                 </div>
                 <div class="sort-options">
                     <a href="#" class="active" data-sort="newest">最新</a>
-                    <a href="#" data-sort="hottest">热门</a>
+                    <div class="sort-option-group">
+                        <a href="#" data-sort="hottest" id="hottestSortLink">热门</a>
+                        <div class="hottest-tooltip" id="hottestTooltip">
+                            <a href="#" data-timerange="1w">一星期 <span class="checkmark"></span></a>
+                            <a href="#" data-timerange="1m">一个月 <span class="checkmark"></span></a>
+                            <a href="#" data-timerange="6m">半年内 <span class="checkmark"></span></a>
+                            <a href="#" data-timerange="1y">一年内 <span class="checkmark"></span></a>
+                        </div>
+                    </div>
                     <!-- <a href="#" data-sort="featured">精华</a> -->
                 </div>
             </div>
@@ -156,24 +164,101 @@
             });
             
             // 设置排序点击事件
-            document.querySelectorAll('.sort-options a').forEach(link => {
+            document.querySelectorAll('.sort-options a[data-sort]').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     
-                    // 移除之前的active类
-                    document.querySelectorAll('.sort-options a').forEach(item => {
-                        item.classList.remove('active');
-                    });
-                    
-                    // 添加active类到当前点击项
-                    this.classList.add('active');
-                    
-                    // 根据排序方式加载话题
-                    const sortBy = this.getAttribute('data-sort');
-                    const category = document.querySelector('.filter-options a.active').getAttribute('data-category');
-                    loadTopics(category, sortBy);
+                    const currentSortBy = this.getAttribute('data-sort');
+                    const currentCategory = document.querySelector('.filter-options a.active').getAttribute('data-category');
+
+                    if (currentSortBy === 'hottest') {
+                        // 如果点击的是热门主按钮，默认使用上次选择或“一星期”
+                        const activeTimeRangeLink = document.querySelector('.hottest-tooltip a.selected');
+                        const timeRange = activeTimeRangeLink ? activeTimeRangeLink.getAttribute('data-timerange') : '1w';
+                        
+                        document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        
+                        if (!activeTimeRangeLink) { // 默认选中“一星期”
+                             const defaultTimeRangeLink = document.querySelector('.hottest-tooltip a[data-timerange="1w"]');
+                             if (defaultTimeRangeLink) {
+                                 document.querySelectorAll('.hottest-tooltip a .checkmark').forEach(cm => cm.textContent = '');
+                                 defaultTimeRangeLink.querySelector('.checkmark').textContent = '√';
+                                 defaultTimeRangeLink.classList.add('selected');
+                             }
+                        }
+                        loadTopics(currentCategory, currentSortBy, timeRange);
+                    } else {
+                        document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        // 清除热门时间范围选择
+                        document.querySelectorAll('.hottest-tooltip a').forEach(item => {
+                            item.classList.remove('selected');
+                            item.querySelector('.checkmark').textContent = '';
+                        });
+                        loadTopics(currentCategory, currentSortBy);
+                    }
                 });
             });
+
+            // 热门筛选悬浮窗逻辑
+            const hottestSortLink = document.getElementById('hottestSortLink');
+            const hottestTooltip = document.getElementById('hottestTooltip');
+            let tooltipTimeout;
+
+            if (hottestSortLink && hottestTooltip) {
+                hottestSortLink.addEventListener('mouseenter', () => {
+                    clearTimeout(tooltipTimeout);
+                    hottestTooltip.style.display = 'block';
+                });
+
+                hottestSortLink.addEventListener('mouseleave', () => {
+                    tooltipTimeout = setTimeout(() => {
+                        hottestTooltip.style.display = 'none';
+                    }, 200);
+                });
+
+                hottestTooltip.addEventListener('mouseenter', () => {
+                    clearTimeout(tooltipTimeout);
+                });
+
+                hottestTooltip.addEventListener('mouseleave', () => {
+                    tooltipTimeout = setTimeout(() => {
+                        hottestTooltip.style.display = 'none';
+                    }, 200);
+                });
+
+                hottestTooltip.querySelectorAll('a').forEach(timeRangeLink => {
+                    timeRangeLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation(); // 阻止冒泡到父级 a 标签的点击事件
+
+                        const timeRange = this.getAttribute('data-timerange');
+                        const category = document.querySelector('.filter-options a.active').getAttribute('data-category');
+                        
+                        // 更新排序选项的 active 状态
+                        document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        hottestSortLink.classList.add('active');
+
+                        // 更新悬浮窗内选项的选中状态和√标记
+                        hottestTooltip.querySelectorAll('a').forEach(item => {
+                            item.classList.remove('selected');
+                            item.querySelector('.checkmark').textContent = '';
+                        });
+                        this.classList.add('selected');
+                        this.querySelector('.checkmark').textContent = '√';
+                        
+                        loadTopics(category, 'hottest', timeRange);
+                        hottestTooltip.style.display = 'none'; // 点击后隐藏悬浮窗
+                    });
+                });
+            }
         });
         
         // 查看话题详情
@@ -228,12 +313,17 @@
         }
         
         // 加载话题列表
-        function loadTopics(category = 'all', sortBy = 'newest') {
+        function loadTopics(category = 'all', sortBy = 'newest', timeRange = null) {
             const topicListContainer = document.getElementById('topicListContainer');
             topicListContainer.innerHTML = '<div class="loading">加载中...</div>';
             
+            let apiUrl = `topics.php?category=${category}&sortBy=${sortBy}`;
+            if (sortBy === 'hottest' && timeRange) {
+                apiUrl += `&timeRange=${timeRange}`;
+            }
+            
             // 使用通用AJAX请求函数
-            sendAjaxRequest('GET', `topics.php?category=${category}&sortBy=${sortBy}`, null, 
+            sendAjaxRequest('GET', apiUrl, null, 
                 function(response) {
                     if (response.success) {
                         const posts = response.topics;
@@ -289,6 +379,12 @@
         // 更新分类统计
         function updateCategoryCounts() {
             const categoryCountsEl = document.getElementById('categoryCounts');
+            // 确保在加载热门话题之前，默认选中“一星期”
+            const defaultTimeRangeLink = document.querySelector('.hottest-tooltip a[data-timerange="1w"]');
+            if (defaultTimeRangeLink && !document.querySelector('.hottest-tooltip a.selected')) {
+                defaultTimeRangeLink.classList.add('selected');
+                defaultTimeRangeLink.querySelector('.checkmark').textContent = '√';
+            }
             
             getAllPosts(function(posts) {
                 // 统计每个分类的数量
@@ -489,6 +585,43 @@
         .like-icon {
             margin-right: 5px;
             font-size: 14px;
+        }
+
+        /* 热门筛选悬浮窗样式 */
+        .hottest-tooltip {
+            display: none;
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            width: 150px;
+        }
+
+        .hottest-tooltip a {
+            display: block;
+            padding: 8px;
+            color: #333;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .hottest-tooltip a:hover {
+            background: #f5f5f5;
+        }
+
+        .hottest-tooltip .checkmark {
+            position: absolute;
+            right: 10px;
+            top: 8px;
+            color: #e74c3c;
+            font-weight: bold;
+            display: none;
+        }
+
+        .hottest-tooltip a.selected .checkmark {
+            display: inline;
         }
     </style>
 </body>

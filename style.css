@@ -313,6 +313,56 @@ nav a:hover {
     font-weight: 500;
 }
 
+/* 新增热门筛选悬浮窗样式 */
+.sort-option-group {
+    position: relative;
+    display: inline-block; /* 或者 flex, 根据布局需求 */
+}
+
+.hottest-tooltip {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+    min-width: 100px; /* 根据内容调整 */
+    padding: 5px 0;
+    top: 100%; /* 显示在“热门”下方 */
+    left: 0;
+}
+
+.hottest-tooltip a {
+    display: block;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #333;
+    font-weight: normal; /* 重置父级 active 的加粗 */
+    white-space: nowrap;
+}
+
+.hottest-tooltip a:hover {
+    background-color: #f0f0f0;
+    color: #1e3a8a; /* 保持与筛选器激活颜色一致 */
+}
+
+.hottest-tooltip a .checkmark {
+    margin-left: 5px;
+    color: #1e3a8a; /* √ 标记颜色 */
+    font-weight: bold;
+}
+
+.hottest-tooltip a.selected {
+    background-color: #e6f0ff; /* 选中项的背景色 */
+    color: #1e3a8a;
+    font-weight: 500;
+}
+
+.hottest-tooltip a.selected .checkmark {
+    display: inline;
+}
+
 .topic-card {
     background-color: white;
     border-radius: 8px;

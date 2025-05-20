@@ -102,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
     $category = isset($_GET['category']) ? $_GET['category'] : 'all';
     $sortBy = isset($_GET['sortBy']) ? $_GET['sortBy'] : 'newest';
+    $timeRange = isset($_GET['timeRange']) ? $_GET['timeRange'] : '1w'; // 默认一周
     
     // 读取话题文件
     $topics = readJsonFile($topicsFile, []);
@@ -125,15 +126,33 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
         });
     } else if ($sortBy === 'hottest') {
         // 计算一周内的热度
-        $oneWeekAgo = (time() - 7 * 24 * 60 * 60) * 1000; // 一周前的JavaScript时间戳
+        $now = time();
+        $timeAgo = $now;
+
+        switch ($timeRange) {
+            case '1m': // 一月
+                $timeAgo = $now - (30 * 24 * 60 * 60);
+                break;
+            case '6m': // 半年
+                $timeAgo = $now - (6 * 30 * 24 * 60 * 60);
+                break;
+            case '1y': // 一年
+                $timeAgo = $now - (365 * 24 * 60 * 60);
+                break;
+            case '1w': // 一周 (默认)
+            default:
+                $timeAgo = $now - (7 * 24 * 60 * 60);
+                break;
+        }
+        $timeAgoJs = $timeAgo * 1000; // 转换为 JavaScript 时间戳
         
-        // 计算热度分数 - 基于一周内的评论数+点赞数
+        // 计算热度分数 - 基于指定时间范围内的评论数+点赞数
         foreach ($topics as &$topic) {
-            if ($topic['timestamp'] >= $oneWeekAgo) {
-                // 一周内的帖子，热度 = 评论数 + 点赞数
-                $topic['hotScore'] = $topic['comments'] + $topic['likes'];
+            if ($topic['timestamp'] >= $timeAgoJs) {
+                // 指定时间范围内的帖子，热度 = 评论数 + 点赞数
+                $topic['hotScore'] = ($topic['comments'] ?? 0) + ($topic['likes'] ?? 0);
             } else {
-                // 超过一周的帖子热度为0
+                // 超过指定时间范围的帖子热度为0
                 $topic['hotScore'] = 0;
             }
         }
