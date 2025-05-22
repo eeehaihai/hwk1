@@ -14,30 +14,36 @@
             <a href="home.html" class="logo">
                 <h1>吉大树洞</h1>
             </a>
-            
+
             <div class="user-actions">
                 <!-- 这里会通过JS动态更新用户登录状态 -->
             </div>
         </div>
     </header>
-    
+
     <!-- 搜索区域 -->
     <section class="search-section">
         <div class="container search-container">
             <h2>探索校园里的奇闻趣事与生活点滴</h2>
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索话题、关键词...">
-                <button onclick="searchPosts()" class="search-icon-btn">🔍</button>
+                <!-- 新增一个包装器 div -->
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="搜索话题、关键词...">
+                    <!-- 将图标放在这里 -->
+                    <span class="search-icon">🔍</span>
+                </div>
+                <!-- 移除原有的搜索按钮 -->
+                <!-- <button onclick="searchPosts()" class="search-icon-btn">🔍</button> -->
             </div>
         </div>
     </section>
-    
+
     <!-- 主要内容区域 -->
     <div class="container main-content">
         <!-- 话题列表区域 -->
         <div class="topic-list">
             <a href="create-topic.html" class="create-topic-btn">发布新话题</a>
-            
+
             <div class="topic-filter">
                 <div class="filter-options">
                     <a href="#" class="active" data-category="all">全部</a>
@@ -59,14 +65,14 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- 话题列表 -->
             <div id="topicListContainer">
                 <!-- 这里将通过JS动态加载话题列表 -->
                 <div class="loading">加载中...</div>
             </div>
         </div>
-        
+
         <!-- 侧边栏区域 -->
         <div class="sidebar">
             <!-- 热门分类 -->
@@ -76,7 +82,7 @@
                     <!-- 这里将通过JS动态加载分类计数 -->
                 </ul>
             </div>
-            
+
             <!-- 热门话题 -->
             <div class="sidebar-widget">
                 <h3>热门话题</h3>
@@ -84,7 +90,7 @@
                     <!-- 这里将通过JS动态加载热门话题 -->
                 </ul>
             </div>
-            
+
             <!-- 用户排行 -->
             <div class="sidebar-widget">
                 <h3>活跃用户榜</h3>
@@ -94,7 +100,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 页脚区域 -->
     <footer>
         <div class="container footer-content">
@@ -110,7 +116,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="copyright">
             <div class="container">
                 Copyright &copy; 2025 吉大树洞 All Rights Reserved. 吉ICP备XXXXXXXX号
@@ -123,10 +129,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             // 更新导航栏用户状态
             updateNavUserStatus();
-            
+
             // 加载并显示话题列表 (默认排序和分类)
-            loadTopics(); 
-            
+            loadTopics();
+
             // 获取所有帖子数据一次，然后传递给侧边栏更新函数
             getAllPosts(function(allPostsData) {
                 if (allPostsData && allPostsData.length > 0) {
@@ -147,31 +153,31 @@
                 window.scrollTo(0, parseInt(scrollPosition, 10));
                 sessionStorage.removeItem('homeScrollPosition'); // 使用后清除
             }
-            
+
             // 设置分类筛选点击事件
             document.querySelectorAll('.filter-options a').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     // 移除之前的active类
                     document.querySelectorAll('.filter-options a').forEach(item => {
                         item.classList.remove('active');
                     });
-                    
+
                     // 添加active类到当前点击项
                     this.classList.add('active');
-                    
+
                     // 根据分类筛选话题
                     const category = this.getAttribute('data-category');
                     loadTopics(category);
                 });
             });
-            
+
             // 设置排序点击事件
             document.querySelectorAll('.sort-options a[data-sort]').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
+
                     const currentSortBy = this.getAttribute('data-sort');
                     const currentCategory = document.querySelector('.filter-options a.active').getAttribute('data-category');
 
@@ -179,12 +185,12 @@
                         // 如果点击的是热门主按钮，默认使用上次选择或“一星期”
                         const activeTimeRangeLink = document.querySelector('.hottest-tooltip a.selected');
                         const timeRange = activeTimeRangeLink ? activeTimeRangeLink.getAttribute('data-timerange') : '1w';
-                        
+
                         document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
                             item.classList.remove('active');
                         });
                         this.classList.add('active');
-                        
+
                         if (!activeTimeRangeLink) { // 默认选中“一星期”
                              const defaultTimeRangeLink = document.querySelector('.hottest-tooltip a[data-timerange="1w"]');
                              if (defaultTimeRangeLink) {
@@ -243,7 +249,7 @@
 
                         const timeRange = this.getAttribute('data-timerange');
                         const category = document.querySelector('.filter-options a.active').getAttribute('data-category');
-                        
+
                         // 更新排序选项的 active 状态
                         document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
                             item.classList.remove('active');
@@ -257,28 +263,45 @@
                         });
                         this.classList.add('selected');
                         this.querySelector('.checkmark').textContent = '√';
-                        
+
                         loadTopics(category, 'hottest', timeRange);
                         hottestTooltip.style.display = 'none'; // 点击后隐藏悬浮窗
                     });
                 });
             }
+
+            // 添加事件监听器到新的搜索图标和输入框
+            const searchInput = document.getElementById('searchInput');
+            const searchIcon = document.querySelector('.search-icon');
+
+            if (searchIcon) {
+                searchIcon.addEventListener('click', searchPosts);
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault(); // 阻止默认的表单提交行为
+                        searchPosts();
+                    }
+                });
+            }
         });
-        
+
         // 查看话题详情
         function viewTopic(id) {
             sessionStorage.setItem('homeScrollPosition', window.scrollY); // 保存滚动位置
             window.location.href = `topic-detail.html?id=${id}`;
         }
-        
+
         // 话题卡片创建函数
         function createTopicCard(post) {
             const topicCard = document.createElement('div');
             topicCard.className = 'topic-card';
-            
+
             // 使用通用函数截断长文本
             const contentPreview = truncateText(post.content);
-            
+
             // 使用通用函数处理HTML安全
             topicCard.innerHTML = `
                 <div class="topic-header">
@@ -303,7 +326,7 @@
                     </div>
                 </div>
             `;
-            
+
             // 增加点击查看详情功能
             topicCard.addEventListener('click', function(e) {
                 // 如果点击的是点赞按钮，不要跳转
@@ -312,35 +335,35 @@
                 }
                 viewTopic(post.id);
             });
-            
+
             return topicCard;
         }
-        
+
         // 加载话题列表
         function loadTopics(category = 'all', sortBy = 'newest', timeRange = null) {
             const topicListContainer = document.getElementById('topicListContainer');
             topicListContainer.innerHTML = '<div class="loading">加载中...</div>';
-            
+
             let apiUrl = `topics.php?category=${category}&sortBy=${sortBy}`;
             if (sortBy === 'hottest' && timeRange) {
                 apiUrl += `&timeRange=${timeRange}`;
             }
-            
+
             // 使用通用AJAX请求函数
-            sendAjaxRequest('GET', apiUrl, null, 
+            sendAjaxRequest('GET', apiUrl, null,
                 function(response) {
                     if (response.success) {
                         const posts = response.topics;
-                        
+
                         // 如果没有帖子，显示提示
                         if (posts.length === 0) {
                             topicListContainer.innerHTML = '<div class="no-topics">暂无话题，快来发布第一个话题吧！</div>';
                             return;
                         }
-                        
+
                         // 清空加载提示
                         topicListContainer.innerHTML = '';
-                        
+
                         // 显示每个帖子
                         posts.forEach(post => {
                             const topicCard = createTopicCard(post);
@@ -355,14 +378,14 @@
                 }
             );
         }
-        
+
         // 在列表页点赞话题
         function likeTopicInList(topicId, event) {
             event.stopPropagation(); // 阻止事件冒泡，避免触发话题卡片的点击事件
-            
+
             const likeBtn = event.currentTarget;
             const likeCountEl = likeBtn.querySelector('.like-count');
-            
+
             // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'like_topic.php', { topicId: topicId },
                 function(response) {
@@ -379,7 +402,7 @@
                 }
             );
         }
-        
+
         // 更新分类统计
         function updateCategoryCounts(posts) { // 接收 posts 数据作为参数
             const categoryCountsEl = document.getElementById('categoryCounts');
@@ -389,9 +412,9 @@
                 defaultTimeRangeLink.classList.add('selected');
                 defaultTimeRangeLink.querySelector('.checkmark').textContent = '√';
             }
-            
+
             categoryCountsEl.innerHTML = ''; // 清空现有列表
-            
+
             // 统计每个分类的数量
             const categoryCounts = {
                 'campus_life': 0,
@@ -399,13 +422,13 @@
                 'secondhand': 0,
                 'lost_found': 0
             };
-            
+
             posts.forEach(post => {
                 if (categoryCounts.hasOwnProperty(post.category)) {
                     categoryCounts[post.category]++;
                 }
             });
-            
+
             // 显示分类统计
             const categoryNames = {
                 'campus_life': '校园生活',
@@ -413,13 +436,13 @@
                 'secondhand': '二手交易',
                 'lost_found': '失物招领'
             };
-            
+
             for (const category in categoryNames) { // Iterate over categoryNames to maintain order and selection
                 if (categoryNames.hasOwnProperty(category)) {
                     const count = categoryCounts[category] || 0;
                     const li = document.createElement('li');
                     li.innerHTML = `<a href="#" data-category="${category}">${categoryNames[category]} <span class="category-count">${count}</span></a>`;
-                    
+
                     li.querySelector('a').addEventListener('click', function(e) {
                         e.preventDefault();
                         document.querySelectorAll('.filter-options a').forEach(link => {
@@ -434,24 +457,24 @@
                 }
             }
         }
-        
+
         // 加载热门话题
         function loadHotTopics(posts) { // 接收 posts 数据作为参数
             const hotTopicsEl = document.getElementById('hotTopics');
-            
+
             hotTopicsEl.innerHTML = ''; // 清空现有列表
-            
+
             // 按热度排序（浏览量+点赞数*2）
             const sortedPosts = [...posts].sort((a, b) => (b.views + (b.likes || 0) * 2) - (a.views + (a.likes || 0) * 2));
-            
+
             // 只显示前5个热门话题
             const topPosts = sortedPosts.slice(0, 5);
-            
+
             if (topPosts.length === 0) {
                 hotTopicsEl.innerHTML = '<li>暂无热门话题</li>';
                 return;
             }
-            
+
             topPosts.forEach(post => {
                 const li = document.createElement('li');
                 li.innerHTML = `<a href="#">${safeHtml(post.title)}</a>`;
@@ -462,32 +485,32 @@
                 hotTopicsEl.appendChild(li);
             });
         }
-        
+
         // 加载活跃用户
         function loadActiveUsers(posts) { // 接收 posts 数据作为参数
             const activeUsersEl = document.getElementById('activeUsers');
-            
+
             activeUsersEl.innerHTML = ''; // 清空现有列表
-            
+
             const userPostCounts = {};
             posts.forEach(post => {
                 if (post.author && post.author !== '匿名用户') {
                     userPostCounts[post.author] = (userPostCounts[post.author] || 0) + 1;
                 }
             });
-            
+
             const users = Object.keys(userPostCounts).map(user => ({
                 username: user,
                 postCount: userPostCounts[user]
             })).sort((a, b) => b.postCount - a.postCount);
-            
+
             const topUsers = users.slice(0, 5);
-            
+
             if (topUsers.length === 0) {
                 activeUsersEl.innerHTML = '<li>暂无活跃用户</li>';
                 return;
             }
-            
+
             topUsers.forEach(user => {
                 const li = document.createElement('li');
                 li.innerHTML = `<a href="#">${safeHtml(user.username)} <span class="category-count">${user.postCount}</span></a>`;
@@ -495,36 +518,36 @@
                 activeUsersEl.appendChild(li);
             });
         }
-        
+
         // 搜索帖子
         function searchPosts() {
             const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-            
+
             if (!searchTerm) {
                 alert('请输入搜索关键词');
                 return;
             }
-            
+
             const topicListContainer = document.getElementById('topicListContainer');
             topicListContainer.innerHTML = '<div class="loading">搜索中...</div>';
-            
+
             getAllPosts(function(posts) {
                 // 根据关键词搜索帖子（标题和内容）
-                const filteredPosts = posts.filter(post => 
-                    post.title.toLowerCase().includes(searchTerm) || 
+                const filteredPosts = posts.filter(post =>
+                    post.title.toLowerCase().includes(searchTerm) ||
                     post.content.toLowerCase().includes(searchTerm) ||
                     (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
                 );
-                
+
                 // 显示搜索结果
                 if (filteredPosts.length === 0) {
                     topicListContainer.innerHTML = `<div class="no-topics">没有找到与 "${safeHtml(searchTerm)}" 相关的话题</div>`;
                     return;
                 }
-                
+
                 // 清空现有内容
                 topicListContainer.innerHTML = `<div class="search-result-info">找到 ${filteredPosts.length} 个与 "${safeHtml(searchTerm)}" 相关的话题</div>`;
-                
+
                 // 显示每个帖子
                 filteredPosts.forEach(post => {
                     const topicCard = createTopicCard(post);
@@ -533,62 +556,5 @@
             });
         }
     </script>
-
-    <style>
-        /* 点赞按钮样式 */
-        .like-btn {
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            color: #666;
-            transition: color 0.3s;
-        }
-
-        .like-btn:hover {
-            color: #e74c3c;
-        }
-
-        .like-icon {
-            margin-right: 5px;
-            font-size: 14px;
-        }
-
-        /* 热门筛选悬浮窗样式 */
-        .hottest-tooltip {
-            display: none;
-            position: absolute;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            z-index: 1000;
-            width: 150px;
-        }
-
-        .hottest-tooltip a {
-            display: block;
-            padding: 8px;
-            color: #333;
-            text-decoration: none;
-            position: relative;
-        }
-
-        .hottest-tooltip a:hover {
-            background: #f5f5f5;
-        }
-
-        .hottest-tooltip .checkmark {
-            position: absolute;
-            right: 10px;
-            top: 8px;
-            color: #e74c3c;
-            font-weight: bold;
-            display: none;
-        }
-
-        .hottest-tooltip a.selected .checkmark {
-            display: inline;
-        }
-    </style>
 </body>
 </html>

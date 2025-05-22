@@ -14,7 +14,7 @@
             <a href="home.html" class="logo">
                 <h1>吉大树洞</h1>
             </a>
-            
+
             <div class="user-actions">
                 <!-- 这里会通过JS动态更新用户登录状态 -->
             </div>
@@ -28,7 +28,7 @@
             <div id="topicDetail" class="topic-detail">
                 <div class="loading">正在加载话题内容...</div>
             </div>
-            
+
             <!-- 评论列表区域 -->
             <div class="comment-section">
                 <h2>全部评论 <span id="commentCount">0</span></h2>
@@ -36,7 +36,7 @@
                     <div class="loading">正在加载评论...</div>
                 </div>
             </div>
-            
+
             <!-- 回复表单区域 -->
             <div class="reply-form-section">
                 <h2>发表评论</h2>
@@ -46,7 +46,7 @@
                         <textarea id="reply_content" name="reply_content" required placeholder="请输入您的评论内容..."></textarea>
                         <div class="tips">文明发言，友善交流</div>
                     </div>
-                    
+
                     <div class="upload-section">
                         <label>添加图片</label>
                         <input type="file" id="images" name="images[]" class="file-input" accept="image/*" multiple>
@@ -55,7 +55,7 @@
                         <div class="tips">最多可上传3张图片，每张不超过5MB</div>
                         <div class="files-preview" id="preview-container"></div>
                     </div>
-                    
+
                     <div class="form-group">
                         <div class="option-group">
                             <div class="checkbox-item">
@@ -64,9 +64,9 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="message" class="message-box" style="display: none;"></div>
-                    
+
                     <div class="button-group">
                         <button type="submit" id="submitReply">发表评论</button>
                     </div>
@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- 页脚区域 -->
     <footer>
         <div class="container footer-content">
@@ -90,7 +90,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="copyright">
             <div class="container">
                 Copyright &copy; 2025 吉大树洞 All Rights Reserved. 吉ICP备XXXXXXXX号
@@ -104,7 +104,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('id');
         }
-        
+
         // 加载话题详情
         function loadTopicDetail() {
             const topicId = getTopicId();
@@ -112,21 +112,21 @@
                 window.location.href = 'home.html';
                 return;
             }
-            
+
             const topicDetailEl = document.getElementById('topicDetail');
             topicDetailEl.innerHTML = '<div class="loading">正在加载话题内容...</div>';
-            
+
             // 使用通用AJAX请求函数
             sendAjaxRequest('GET', `topics.php?id=${topicId}`, null,
                 function(response) {
                     if (response.success && response.topic) {
                         const post = response.topic;
-                        
+
                         // 构建详情页HTML
-                        const tagsHtml = post.tags && post.tags.length > 0 
-                            ? `<div class="topic-tags">${post.tags.map(tag => `<span class="tag">${safeHtml(tag)}</span>`).join('')}</div>` 
+                        const tagsHtml = post.tags && post.tags.length > 0
+                            ? `<div class="topic-tags">${post.tags.map(tag => `<span class="tag">${safeHtml(tag)}</span>`).join('')}</div>`
                             : '';
-                        
+
                         // 添加删除按钮（仅对作者显示）
                         const currentUser = getCurrentUser();
                         const deleteButtonHtml = (currentUser && (currentUser === post.author || currentUser === 'admin'))
@@ -134,12 +134,12 @@
                                 <span class="delete-icon">🗑️</span> 删除话题
                               </button>`
                             : '';
-                        
+
                         // 处理话题内容，确保HTML安全并正确显示换行
                         const safeContent = safeHtml(post.content).replace(/\n/g, '<br>');
-                        
+
                         // 构建图片HTML
-                        const imagesHtml = post.images && post.images.length > 0 
+                        const imagesHtml = post.images && post.images.length > 0
                             ? `<div class="topic-images-container">
                                 ${post.images.map(imgPath => `<img src="${safeHtml(imgPath)}" alt="话题图片" class="topic-image" onclick="openImageModal(this.src)">`).join('')}
                                </div>`
@@ -169,12 +169,12 @@
                                 ${deleteButtonHtml}
                             </div>
                         `;
-                        
+
                         topicDetailEl.innerHTML = topicHtml;
-                        
+
                         // 更新页面标题
                         document.title = `${post.title} - 吉大树洞`;
-                        
+
                         // 加载评论
                         loadComments(topicId);
                     } else {
@@ -186,13 +186,13 @@
                 }
             );
         }
-        
+
         // 删除话题
         function deleteTopic(topicId) {
             if (!confirm('确定要删除这个话题吗？此操作不可恢复！')) {
                 return;
             }
-            
+
             // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'delete_topic.php', { topicId: topicId },
                 function(response) {
@@ -209,11 +209,11 @@
                 }
             );
         }
-        
+
         // 点赞功能
         function likeTopic(topicId) {
             const likeCountEl = document.getElementById('likeCount');
-            
+
             // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'like_topic.php', { topicId: topicId },
                 function(response) {
@@ -230,38 +230,38 @@
                 }
             );
         }
-        
+
         // 加载话题的评论
         function loadComments(topicId) {
             const commentListEl = document.getElementById('commentList');
             const commentCountEl = document.getElementById('commentCount');
-            
+
             commentListEl.innerHTML = '<div class="loading">正在加载评论...</div>';
-            
+
             // 使用通用AJAX请求函数
             sendAjaxRequest('GET', `comments.php?topicId=${topicId}`, null,
                 function(response) {
                     if (response.success) {
                         const comments = response.comments || [];
-                        
+
                         // 更新评论数量
                         commentCountEl.textContent = comments.length;
-                        
+
                         // 如果没有评论
                         if (comments.length === 0) {
                             commentListEl.innerHTML = '<div class="no-comments">暂无评论，快来发表第一条评论吧！</div>';
                             return;
                         }
-                        
+
                         // 显示所有评论
                         commentListEl.innerHTML = '';
                         comments.forEach((comment, index) => {
                             const commentEl = document.createElement('div');
                             commentEl.className = 'comment-item';
-                            
+
                             // 处理评论内容，确保HTML安全并正确显示换行
                             const safeContent = safeHtml(comment.content).replace(/\n/g, '<br>');
-                            
+
                             // 构建评论图片HTML
                             const commentImagesHtml = comment.images && comment.images.length > 0
                                 ? `<div class="comment-images-container">
@@ -285,7 +285,7 @@
                                     </button>
                                 </div>
                             `;
-                            
+
                             commentListEl.appendChild(commentEl);
                         });
                     } else {
@@ -297,7 +297,7 @@
                 }
             );
         }
-        
+
         // 点赞评论
         function likeComment(topicId, commentId, event) {
             // 实际项目中应该发送请求到服务器更新点赞数
@@ -306,24 +306,24 @@
             const currentLikes = parseInt(likeCountEl.textContent || '0');
             likeCountEl.textContent = currentLikes + 1;
         }
-        
+
         // 回复某人评论
         function replyToComment(username) {
             const replyContentEl = document.getElementById('reply_content');
             replyContentEl.value = `@${username} `;
             replyContentEl.focus();
         }
-        
+
         // 处理图片预览
         document.getElementById('images').addEventListener('change', function(e) {
             const fileCount = e.target.files.length;
-            document.getElementById('file-count').textContent = 
+            document.getElementById('file-count').textContent =
                 fileCount > 0 ? `已选择 ${fileCount} 个文件` : '未选择文件';
-            
+
             // 简单的预览功能
             const previewContainer = document.getElementById('preview-container');
             previewContainer.innerHTML = '';
-            
+
             for(let i = 0; i < Math.min(fileCount, 3); i++) {
                 const file = e.target.files[i];
                 if(file.type.startsWith('image/')) {
@@ -341,44 +341,44 @@
                 }
             }
         });
-        
+
         // 处理评论提交
         document.getElementById('replyForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             // 检查登录状态
             if (!isLoggedIn()) {
                 alert('请先登录后再发表评论');
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             const topicId = getTopicId();
             const content = document.getElementById('reply_content').value.trim();
             const anonymous = document.getElementById('anonymous').checked;
             const imagesInput = document.getElementById('images'); // 获取文件输入元素
-            
+
             if (!content) {
                 alert('评论内容不能为空');
                 return;
             }
-            
+
             const messageEl = document.getElementById('message');
             messageEl.style.display = 'none';
-            
+
             // 创建表单数据
             const formData = new FormData(); // 改为 FormData 对象
             formData.append('topicId', topicId);
             formData.append('content', content);
             formData.append('anonymous', anonymous ? '1' : '0');
-            
+
             // 追加图片文件
             if (imagesInput.files.length > 0) {
                 for (let i = 0; i < imagesInput.files.length; i++) {
                     formData.append('images[]', imagesInput.files[i]);
                 }
             }
-            
+
             // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'comments.php', formData,
                 function(response) {
@@ -387,13 +387,13 @@
                         messageEl.innerHTML = '评论发表成功！';
                         messageEl.className = 'message-box success';
                         messageEl.style.display = 'block';
-                        
+
                         // 清空表单
                         document.getElementById('reply_content').value = '';
                         document.getElementById('preview-container').innerHTML = '';
                         document.getElementById('file-count').textContent = '未选择文件';
                         imagesInput.value = ''; // 重置文件输入框
-                        
+
                         // 重新加载评论
                         setTimeout(() => {
                             messageEl.style.display = 'none';
@@ -414,12 +414,12 @@
                 }
             );
         });
-        
+
         // 页面加载时执行
         document.addEventListener('DOMContentLoaded', function() {
             // 更新导航栏用户状态
             updateNavUserStatus();
-            
+
             // 加载话题详情
             loadTopicDetail();
         });
@@ -448,121 +448,5 @@
         <span class="close-modal-btn" onclick="closeImageModal()">&times;</span>
         <img class="modal-content-image" id="modalImageSrc">
     </div>
-
-    <style>
-        /* 删除按钮样式 */
-        .delete-button {
-            background-color: #f8d7da;
-            color: #721c24;
-            margin-left: auto;
-        }
-        
-        .delete-button:hover {
-            background-color: #f5c6cb;
-        }
-        
-        .delete-icon {
-            margin-right: 5px;
-        }
-        
-        /* 话题详情页额外样式 */
-        .topic-detail-container {
-            max-width: 900px;
-            padding: 25px;
-            overflow-x: hidden; /* 防止水平溢出 */
-        }
-        
-        .topic-detail {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        /* 确保表单内的元素不会溢出 */
-        .reply-form-section textarea {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* 图片容器和图片样式 */
-        .topic-images-container, .comment-images-container {
-            margin-top: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px; /* 图片之间的间隙 */
-        }
-
-        .topic-image, .comment-image {
-            max-width: 150px; /* 限制图片最大宽度 */
-            max-height: 150px; /* 限制图片最大高度 */
-            border-radius: 4px; /* 图片圆角 */
-            object-fit: cover; /* 保持图片比例并填充 */
-            border: 1px solid #ddd; /* 图片边框 */
-            cursor: pointer; /* 添加手型光标 */
-        }
-
-        /* 图片模态框样式 */
-        .image-modal {
-            display: none; /* 默认隐藏 */
-            position: fixed; /* 固定定位 */
-            z-index: 1001; /* 置于顶层 */
-            padding-top: 50px; /* 顶部内边距 */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto; /* 内容溢出时显示滚动条 */
-            background-color: rgba(0,0,0,0.85); /* 半透明黑色背景 */
-        }
-
-        .modal-content-image {
-            margin: auto;
-            display: block;
-            max-width: 85%;
-            max-height: 85vh; /* 最大高度为视窗高度的85% */
-        }
-
-        .close-modal-btn {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
-        }
-
-        .close-modal-btn:hover,
-        .close-modal-btn:focus {
-            color: #bbb;
-            text-decoration: none;
-        }
-        
-        /* 新增样式，用于左上角返回按钮 */
-        .nav-link-top-left {
-            display: inline-block; 
-            margin-bottom: 20px; /* 增加与下方内容的间距 */
-            text-align: left; 
-        }
-
-        .button-styled-back {
-            background-color: #f0f0f0;
-            color: #333;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            border: 1px solid #ccc;
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-        }
-
-        .button-styled-back:hover {
-            background-color: #e0e0e0;
-            color: #1e3a8a;
-            border-color: #adadad;
-            text-decoration: none;
-        }
-    </style>
 </body>
 </html>
