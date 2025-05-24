@@ -49,7 +49,7 @@
             <div class="form-group">
                 <div class="checkbox-group">
                     <input type="checkbox" id="agree_terms" name="agree_terms" required>
-                    <label for="agree_terms" class="required">我已阅读并同意<a href="#" target="_blank">《校园论坛用户协议》</a>和<a href="#" target="_blank">《隐私政策》</a></label>
+                    <label for="agree_terms" class="required">我已阅读并同意<span class="agreement-link" onclick="showModal('userAgreement')">《校园论坛用户协议》</span>和<span class="agreement-link" onclick="showModal('privacyPolicy')">《隐私政策》</span></label>
                 </div>
             </div>
             
@@ -63,7 +63,185 @@
         </form>
     </div>
     
+    <!-- 用户协议悬浮窗 -->
+    <div id="userAgreementModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>校园论坛用户协议</h3>
+                <span class="modal-close" onclick="closeModal('userAgreement')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h4>第一条 协议的接受</h4>
+                <p>欢迎使用校园论坛！本协议是您与校园论坛之间关于您使用校园论坛服务的法律协议。通过注册、访问或使用校园论坛的任何服务，您表示同意接受本协议的全部条款和条件。</p>
+                
+                <h4>第二条 服务描述</h4>
+                <p>校园论坛是一个为校园用户提供信息交流、资源分享的网络平台。我们提供包括但不限于话题发布、评论互动、信息搜索等服务。</p>
+                
+                <h4>第三条 用户注册</h4>
+                <p>1. 用户注册时必须提供真实、准确、完整的个人信息；</p>
+                <p>2. 用户有义务及时更新注册信息，确保其真实性、准确性；</p>
+                <p>3. 用户应当妥善保管账号和密码，对账号下的所有活动承担责任；</p>
+                <p>4. 禁止恶意注册账号，一人仅限注册一个账号。</p>
+                
+                <h4>第四条 用户行为规范</h4>
+                <p>用户在使用校园论坛服务时，必须遵守以下规定：</p>
+                <p>1. 遵守国家相关法律法规和校园管理规定；</p>
+                <p>2. 不发布违法、有害、威胁、辱骂、诽谤、色情、暴力等内容；</p>
+                <p>3. 不进行恶意注册、刷屏、广告推广等破坏平台秩序的行为；</p>
+                <p>4. 尊重他人知识产权，不侵犯他人合法权益；</p>
+                <p>5. 维护校园论坛的良好氛围，积极参与健康的学术和生活讨论；</p>
+                <p>6. 不传播谣言、虚假信息或进行恶意炒作。</p>
+                
+                <h4>第五条 内容管理</h4>
+                <p>1. 用户发布的内容应当真实、合法，不得含有虚假信息；</p>
+                <p>2. 校园论坛有权对违规内容进行删除、屏蔽等处理；</p>
+                <p>3. 用户对自己发布的内容承担全部法律责任；</p>
+                <p>4. 平台保留对恶意用户进行封号处理的权利。</p>
+                
+                <h4>第六条 隐私保护</h4>
+                <p>校园论坛将按照本站隐私政策保护用户的个人信息，不会在未经授权的情况下向第三方披露用户信息。详细内容请参阅《隐私政策》。</p>
+                
+                <h4>第七条 免责声明</h4>
+                <p>1. 校园论坛仅为信息交流平台，不对用户发布的内容真实性承担责任；</p>
+                <p>2. 因不可抗力、系统维护等原因造成的服务中断，校园论坛不承担责任；</p>
+                <p>3. 用户因使用本服务产生的任何损失，校园论坛不承担赔偿责任；</p>
+                <p>4. 用户之间的交易行为与校园论坛无关，由用户自行承担风险。</p>
+                
+                <h4>第八条 违约处理</h4>
+                <p>1. 用户违反本协议的，校园论坛有权采取删除违规内容、限制功能、暂停账号、永久封禁等措施；</p>
+                <p>2. 情节严重的，校园论坛保留追究法律责任的权利。</p>
+                
+                <h4>第九条 协议修改</h4>
+                <p>校园论坛有权根据需要修改本协议，修改后的协议将在网站上公布。用户继续使用服务视为同意修改后的协议。</p>
+                
+                <h4>第十条 其他</h4>
+                <p>1. 本协议自用户注册之日起生效；</p>
+                <p>2. 如有争议，双方应友好协商解决；</p>
+                <p>3. 本协议的解释权归校园论坛所有。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeModal('userAgreement')">我已阅读</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 隐私政策悬浮窗 -->
+    <div id="privacyPolicyModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>校园论坛隐私政策</h3>
+                <span class="modal-close" onclick="closeModal('privacyPolicy')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h4>引言</h4>
+                <p>校园论坛（以下简称"我们"）深知个人信息对您的重要性，并会尽全力保护您的个人信息安全可靠。我们承诺严格按照本隐私政策处理您的个人信息。</p>
+                
+                <h4>第一条 信息收集</h4>
+                <p>我们收集以下类型的信息：</p>
+                <p><strong>1. 注册信息：</strong>包括用户名、电子邮箱、手机号码等您在注册时主动提供的信息；</p>
+                <p><strong>2. 使用信息：</strong>包括您的浏览记录、发布内容、互动行为、登录时间等使用服务过程中产生的信息；</p>
+                <p><strong>3. 设备信息：</strong>包括设备型号、操作系统、浏览器类型、IP地址、网络类型等技术信息；</p>
+                <p><strong>4. 位置信息：</strong>在您授权的情况下，我们可能收集您的地理位置信息。</p>
+                
+                <h4>第二条 信息使用</h4>
+                <p>我们使用收集的信息用于：</p>
+                <p>1. 提供、维护和改善我们的服务；</p>
+                <p>2. 处理您的请求和回应您的询问；</p>
+                <p>3. 发送重要通知、系统更新和安全提醒；</p>
+                <p>4. 预防欺诈和滥用行为，维护平台安全；</p>
+                <p>5. 进行数据分析以改善用户体验；</p>
+                <p>6. 遵守法律法规要求。</p>
+                
+                <h4>第三条 信息共享</h4>
+                <p>除以下情况外，我们不会向第三方分享您的个人信息：</p>
+                <p>1. 获得您的明确同意；</p>
+                <p>2. 法律法规要求或政府部门要求；</p>
+                <p>3. 为保护校园论坛和用户的合法权益；</p>
+                <p>4. 经过匿名化处理的统计数据；</p>
+                <p>5. 与可信的第三方服务提供商合作（在严格保密协议下）。</p>
+                
+                <h4>第四条 信息安全</h4>
+                <p>我们采取以下措施保护您的信息安全：</p>
+                <p>1. 使用SSL加密技术传输和存储敏感信息；</p>
+                <p>2. 定期更新安全防护措施和系统补丁；</p>
+                <p>3. 严格限制员工访问个人信息的权限；</p>
+                <p>4. 定期进行安全审计和漏洞检测；</p>
+                <p>5. 制定数据泄露应急响应预案。</p>
+                
+                <h4>第五条 Cookie 和相似技术</h4>
+                <p>我们使用Cookie和类似技术来：</p>
+                <p>1. 保持您的登录状态；</p>
+                <p>2. 记住您的偏好设置；</p>
+                <p>3. 分析网站使用情况；</p>
+                <p>4. 提供个性化服务和内容推荐。</p>
+                <p>您可以通过浏览器设置控制Cookie的使用，但可能会影响某些功能的正常使用。</p>
+                
+                <h4>第六条 用户权利</h4>
+                <p>您对自己的个人信息享有以下权利：</p>
+                <p><strong>1. 知情权：</strong>您有权了解我们收集、使用您个人信息的情况；</p>
+                <p><strong>2. 访问权：</strong>您有权查看我们持有的关于您的个人信息；</p>
+                <p><strong>3. 更正权：</strong>您有权更正或更新不准确的个人信息；</p>
+                <p><strong>4. 删除权：</strong>在特定情况下，您有权要求删除个人信息；</p>
+                <p><strong>5. 撤回同意：</strong>您有权撤回之前给予的同意；</p>
+                <p><strong>6. 数据携带权：</strong>您有权要求获取个人信息的副本。</p>
+                
+                <h4>第七条 未成年人保护</h4>
+                <p>1. 我们特别重视未成年人的隐私保护；</p>
+                <p>2. 如果您是18岁以下的未成年人，请在监护人的指导和同意下使用我们的服务；</p>
+                <p>3. 监护人应当对未成年人的网络行为进行监督和指导；</p>
+                <p>4. 未成年人不应提供任何个人身份信息。</p>
+                
+                <h4>第八条 数据保留</h4>
+                <p>1. 我们仅在实现本政策所述目的所需的期间内保留您的个人信息；</p>
+                <p>2. 在您注销账户后，我们将删除或匿名化您的个人信息；</p>
+                <p>3. 法律法规另有规定的除外。</p>
+                
+                <h4>第九条 政策更新</h4>
+                <p>1. 我们可能会不时更新本隐私政策；</p>
+                <p>2. 重要更新将通过网站公告、邮件或其他方式通知您；</p>
+                <p>3. 继续使用我们的服务表示您同意更新后的隐私政策。</p>
+                
+                <h4>第十条 联系我们</h4>
+                <p>如果您对本隐私政策有任何疑问、意见或建议，请通过以下方式联系我们：</p>
+                <p>邮箱：privacy@campusforum.edu.cn</p>
+                <p>地址：校园论坛运营团队</p>
+                <p>电话：400-000-0000</p>
+                <p>我们将在收到您的反馈后尽快回复。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" onclick="closeModal('privacyPolicy')">我已阅读</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
+        // 显示悬浮窗
+        function showModal(type) {
+            const modalId = type === 'userAgreement' ? 'userAgreementModal' : 'privacyPolicyModal';
+            document.getElementById(modalId).style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        }
+        
+        // 关闭悬浮窗
+        function closeModal(type) {
+            const modalId = type === 'userAgreement' ? 'userAgreementModal' : 'privacyPolicyModal';
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'auto'; // 恢复背景滚动
+        }
+        
+        // 点击悬浮窗外部区域关闭
+        window.addEventListener('click', function(event) {
+            const userModal = document.getElementById('userAgreementModal');
+            const privacyModal = document.getElementById('privacyPolicyModal');
+            
+            if (event.target === userModal) {
+                closeModal('userAgreement');
+            }
+            if (event.target === privacyModal) {
+                closeModal('privacyPolicy');
+            }
+        });
+        
         // 提交注册
         function submitRegistration() {
             // 执行表单验证
