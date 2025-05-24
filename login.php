@@ -35,10 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 验证用户
     $authenticated = false;
-    foreach ($users['users'] as $user) {
-        if ($user['username'] === $username && $user['password'] === $password) {
-            $authenticated = true;
-            break;
+    if (isset($users['users']) && is_array($users['users'])) { // 确保 users 结构正确
+        foreach ($users['users'] as $user) {
+            if ($user['username'] === $username && $user['password'] === $password) { // 注意：实际项目中密码应哈希比较
+                $authenticated = true;
+                break;
+            }
         }
     }
     

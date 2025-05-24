@@ -6,7 +6,7 @@
     <title>校园论坛 - 用户注册</title>
     <link rel="stylesheet" href="style.css">
     <!-- 引入验证脚本 -->
-    <script src="register.js"></script>
+    <script src="register.js" defer></script> <!-- 使用 defer 确保DOM加载后执行 -->
 </head>
 <body>
     <div class="page-container">
@@ -17,31 +17,35 @@
                 <legend>基本信息</legend>
                 <div class="form-group">
                     <label for="username" class="required">用户名</label>
-                    <input type="text" id="username" name="username" required placeholder="请输入5-20位字母、数字或下划线" pattern="[a-zA-Z0-9_]{5,20}" oninput="validateUsername()">
+                    <input type="text" id="username" name="username" required placeholder="请输入5-20位字母、数字或下划线" pattern="[a-zA-Z0-9_]{5,20}">
                     <span id="username_message" style="color: red; font-size: 14px;"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="password" class="required">密码</label>
-                    <input type="password" id="password" name="password" required placeholder="请设置8位以上密码" minlength="8" oninput="checkPasswordMatch();">
+                    <input type="password" id="password" name="password" required placeholder="请设置8位以上密码" minlength="8">
                 </div>
                 
                 <div class="form-group">
                     <label for="confirm_password" class="required">确认密码</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="请再次输入密码" minlength="8" oninput="checkPasswordMatch();">
+                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="请再次输入密码" minlength="8">
                     <span id="password_match_message" style="color: red; font-size: 14px;"></span>
                 </div>
 
                 <div class="form-group">
                     <label for="email" class="required">电子邮箱</label>
-                    <input type="email" id="email" name="email" required placeholder="请输入有效的电子邮箱" oninput="validateEmail()">
+                    <input type="email" id="email" name="email" required placeholder="请输入有效的电子邮箱">
                     <span id="email_message" style="color: red; font-size: 14px;"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="phone" class="required">手机号码</label>
-                    <input type="tel" id="phone" name="phone" required placeholder="请输入11位手机号码" pattern="[0-9]{11}" oninput="validatePhone()">
+                    <input type="tel" id="phone" name="phone" required placeholder="请输入11位手机号码" pattern="[0-9]{11}">
                     <span id="phone_message" style="color: red; font-size: 14px;"></span>
+                </div>
+                 <div class="form-group"> <!-- 添加昵称输入字段 -->
+                    <label for="nickname" class="required">昵称</label>
+                    <input type="text" id="nickname" name="nickname" required placeholder="请输入您的昵称">
                 </div>
             </fieldset>
             
@@ -246,6 +250,11 @@
         function submitRegistration() {
             // 执行表单验证
             if(!validateForm()) {
+                // 如果验证失败，在 register.js 中的验证函数会显示具体错误信息
+                const messageBox = document.getElementById('registerMessage');
+                messageBox.innerHTML = '请检查表单中的错误信息！';
+                messageBox.className = 'message-box error';
+                messageBox.style.display = 'block';
                 return;
             }
             

@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园论坛 - 用户登录</title>
     <link rel="stylesheet" href="style.css">
-    <script src="common.js"></script>
+    <script src="common.js" defer></script> <!-- 使用 defer -->
 </head>
 <body class="login-page">
     <div class="login-container">
         <div class="logo-container">
-            <!-- 这里可以放置学校或树洞的logo -->
+            <!-- 此处可以放置学校或论坛的logo -->
         </div>
         <h1>校园论坛 - 用户登录</h1>
         <form id="loginForm">
@@ -73,7 +73,7 @@
                             messageBox.className = 'message-box success';
                             messageBox.style.display = 'block';
                             
-                            // 存储登录信息到sessionStorage
+                            // 存储登录信息到sessionStorage (注意：这仅为前端状态，实际登录状态由服务器session控制)
                             sessionStorage.setItem('login', username);
                             
                             // 延迟跳转到首页

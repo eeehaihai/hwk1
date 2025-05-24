@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园论坛 - 发表话题</title>
     <link rel="stylesheet" href="style.css">
-    <script src="common.js"></script>
+    <script src="common.js" defer></script> <!-- 使用 defer -->
 </head>
 <body>
     <div class="page-container">
@@ -37,7 +37,7 @@
                 <label>添加图片</label>
                 <input type="file" id="images" name="images[]" class="file-input" accept="image/*" multiple>
                 <label for="images" class="file-label">选择图片</label>
-                <span id="file-count">未选择文件</span>
+                <span id="file-count">未选择文件</span> <!-- 此处ID应与 common.js 中的 setupImagePreview 匹配，如果使用的话 -->
                 <div class="tips">最多可上传9张图片，每张不超过5MB</div>
                 <div class="files-preview" id="preview-container"></div>
             </div>
@@ -54,14 +54,6 @@
                     <div class="checkbox-item">
                         <input type="checkbox" id="anonymous" name="anonymous" value="1">
                         <label for="anonymous">匿名发布</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="top" name="top" value="1">
-                        <label for="top">申请置顶</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="disable_comment" name="disable_comment" value="1">
-                        <label for="disable_comment">关闭评论</label>
                     </div>
                 </div>
             </div>
@@ -85,8 +77,9 @@
                 return;
             }
             
-            // 设置图片预览
-            setupImagePreview('images', 'preview-container', 9);
+            // 设置图片预览，确保 'images-count' ID 存在或 common.js 中相应调整
+            // 如果 create-topic.html 中 span id 是 'file-count', common.js 的 setupImagePreview 需要能处理这个
+            setupImagePreview('images', 'preview-container', 9, 'file-count'); // 传递 file-count ID
             
             // 处理表单提交
             handleFormSubmit(document.getElementById('topicForm'), 'topics.php', 

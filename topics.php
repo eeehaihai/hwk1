@@ -10,6 +10,7 @@ require_once 'utils.php';
 
 // 话题数据文件
 $topicsFile = 'topics.json';
+$currentUser = getCurrentUser(); // 获取当前用户以便判断点赞状态
 
 // 创建话题
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -27,8 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = isset($_POST['content']) ? $_POST['content'] : '';
     $tags = isset($_POST['tags']) ? explode(',', $_POST['tags']) : [];
     $anonymous = isset($_POST['anonymous']) ? (bool)$_POST['anonymous'] : false;
-    $top = isset($_POST['top']) ? (bool)$_POST['top'] : false;
-    $disableComment = isset($_POST['disable_comment']) ? (bool)$_POST['disable_comment'] : false;
     
     // 简单验证
     if (empty($title) || empty($category) || empty($content)) {
@@ -60,12 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'tags' => $cleanTags,
         'images' => $uploadedImages, // 添加图片路径
         'anonymous' => $anonymous,
-        'top' => $top,
-        'disableComment' => $disableComment,
-        'author' => $anonymous ? '匿名用户' : getCurrentUser(),
+        'author' => $anonymous ? '匿名用户' : $currentUser,
         'timestamp' => time() * 1000, // JavaScript时间戳格式
         'views' => 0,
-        'likes' => 0,
+        'likedBy' => [], // 新增：初始化点赞用户列表
         'comments' => 0
     ];
     
@@ -111,6 +108,13 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
         }
         $topics = $filteredTopics;
     }
+
+    // 添加点赞数和当前用户点赞状态
+    foreach ($topics as &$topic) {
+        $topic['likes'] = isset($topic['likedBy']) ? count($topic['likedBy']) : 0;
+        $topic['currentUserLiked'] = $currentUser && isset($topic['likedBy']) ? in_array($currentUser, $topic['likedBy']) : false;
+    }
+    unset($topic); // 解除引用
     
     // 按要求排序
     if ($sortBy === 'newest') {
@@ -140,8 +144,8 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
         }
         $timeAgoJs = $timeAgo * 1000; // 转换为 JavaScript 时间戳
         
-        // 计算热度分数 - 基于指定时间范围内的评论数+点赞数
-        foreach ($topics as &$topic) {
+        // 计算热度分数 - 基于指定时间范围内的评论数+点赞数，并移除临时字段
+        foreach ($topics as $key => &$topic) {
             if ($topic['timestamp'] >= $timeAgoJs) {
                 // 指定时间范围内的帖子，热度 = 评论数 + 点赞数
                 $topic['hotScore'] = ($topic['comments'] ?? 0) + ($topic['likes'] ?? 0);
@@ -150,25 +154,19 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
                 $topic['hotScore'] = 0;
             }
         }
+        unset($topic); // 解除引用
         
         // 按热度分数降序排序
         usort($topics, function($a, $b) {
-            return $b['hotScore'] - $a['hotScore'];
+            return ($b['hotScore'] ?? 0) - ($a['hotScore'] ?? 0);
         });
         
         // 移除临时字段
         foreach ($topics as &$topic) {
             unset($topic['hotScore']);
         }
-    } else if ($sortBy === 'featured') {
-        $filteredTopics = [];
-        foreach ($topics as $topic) {
-            if (isset($topic['top']) && $topic['top']) {
-                $filteredTopics[] = $topic;
-            }
-        }
-        $topics = $filteredTopics;
-    }
+        unset($topic); // 解除引用
+    } 
     
     jsonResponse([
         'success' => true,
@@ -180,8 +178,8 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     $topicId = $_GET['id'];
     
     // 读取话题文件
-    $topics = readJsonFile($topicsFile);
-    if (empty($topics)) {
+    $topicsData = readJsonFile($topicsFile); 
+    if (empty($topicsData)) {
         jsonResponse([
             'success' => false,
             'message' => '话题数据文件不存在或为空'
@@ -190,19 +188,26 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     
     // 查找指定话题
     $topic = null;
-    foreach ($topics as &$t) {
+    $topicIndex = -1;
+    foreach ($topicsData as $index => &$t) {
         if ($t['id'] === $topicId) {
             // 增加浏览量
-            $t['views']++;
+            $t['views'] = ($t['views'] ?? 0) + 1;
             $topic = $t;
+            $topicIndex = $index;
             break;
         }
     }
+    unset($t); // 解除引用
     
     // 保存更新后的话题列表（浏览量增加）
     if ($topic) {
-        saveJsonFile($topicsFile, $topics);
+        saveJsonFile($topicsFile, $topicsData);
         
+        // 为单个话题添加点赞数和当前用户点赞状态
+        $topic['likes'] = isset($topic['likedBy']) ? count($topic['likedBy']) : 0;
+        $topic['currentUserLiked'] = $currentUser && isset($topic['likedBy']) ? in_array($currentUser, $topic['likedBy']) : false;
+
         jsonResponse([
             'success' => true,
             'topic' => $topic
