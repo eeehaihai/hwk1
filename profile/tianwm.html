@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>田炜铭的个人主页 - JLU校园论坛</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f6fa;
+            color: #333;
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            position: relative;
+            /* Added for absolute positioning of nav links */
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .nav-logo i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            color: #3498db;
+        }
+
+        /* 新增：返回首页按钮样式 */
+        .back-home-link {
+            text-decoration: none;
+            color: #fff;
+            background-color: #3498db;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .back-home-link:hover {
+            background-color: #2980b9;
+        }
+
+
+        /* 主容器 */
+        .profile-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+        }
+
+        /* 左侧个人信息卡片 */
+        .profile-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .avatar-section {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #3498db;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* 示例背景，实际应为图片 */
+        }
+
+        /* .level-badge removed */
+
+        .username {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .user-title {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* .user-stats removed */
+
+        .user-info {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .info-item i {
+            width: 20px;
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        /* .edit-profile-btn and its hover style removed */
+
+        /* 技能标签 */
+        .skills-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .skills-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background: #ecf0f1;
+            color: #666;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* 右侧内容区 */
+        .profile-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .intro-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .intro-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+
+        .intro-card h3 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        .intro-card p {
+            line-height: 1.8;
+            color: #666;
+        }
+
+        /* .tab-container and all related tab styles removed */
+        /* .post-item and related styles removed */
+        /* .reply-item and related styles removed */
+        /* .favorite-item and related styles removed */
+
+        /* 新增项目和荣誉卡片样式 */
+        .project-experience-card,
+        .honors-awards-card,
+        .tech-stack-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            /* 与下方内容间距 */
+        }
+
+        .project-experience-card h3,
+        .honors-awards-card h3,
+        .tech-stack-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+
+        .project-experience-card h3 i,
+        .honors-awards-card h3 i,
+        .tech-stack-card h3 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        .project-item-profile,
+        .honor-item-profile,
+        .tech-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .project-item-profile:last-child,
+        .honor-item-profile:last-child,
+        .tech-item:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+
+        .project-item-profile h4,
+        .honor-item-profile h4,
+        .tech-item h4 {
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .project-item-profile .date,
+        .honor-item-profile .date {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 8px;
+        }
+
+        .project-item-profile p,
+        .honor-item-profile p,
+        .tech-item p {
+            line-height: 1.7;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .project-item-profile strong {
+            color: #555;
+        }
+
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-menu {
+                gap: 15px;
+            }
+
+            .tab-btn {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>JLU校园论坛</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="../contact-team.html">返回</a></li>
+                <li><a href="../home.html">首页</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 个人主页主体 -->
+    <div class="profile-container">
+        <!-- 左侧个人信息卡片 -->
+        <div class="profile-sidebar">
+            <div class="profile-card">
+                <div class="avatar-section">
+                    <div class="avatar"></div>
+                    <!-- Level badge removed -->
+                </div>
+                <h2 class="username">田炜铭</h2>
+                <p class="user-title">编程爱好者</p>
+
+                <!-- User stats removed -->
+
+                <div class="user-info">
+                    <!-- 学号、电话、加入时间等已移除 -->
+                    <div class="info-item">
+                        <i class="fas fa-university"></i>
+                        <span>吉林大学</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-laptop-code"></i>
+                        <span>计算机科学与技术</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>tianwm2123@mails.jlu.edu.cn</span>
+                    </div>
+                </div>
+
+                <!-- Edit profile button removed -->
+            </div>
+
+            <!-- 技能标签 -->
+            <div class="skills-card">
+                <h3>技能标签</h3>
+                <div class="skill-tags">
+                    <span class="skill-tag">C++</span>
+                    <span class="skill-tag">Python</span>
+                    <span class="skill-tag">JavaScript</span>
+                    <span class="skill-tag">数据结构</span>
+                    <span class="skill-tag">算法</span>
+                    <span class="skill-tag">Web开发</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧内容区 -->
+        <div class="profile-content">
+            <!-- 个人简介 -->
+            <div class="intro-card">
+                <h3><i class="fas fa-user-circle"></i> 个人简介</h3>
+                <p>大家好！我是吉林大学计算机科学与技术专业的学生，热爱编程和技术分享。平时喜欢研究算法、参加编程竞赛，也对Web开发很感兴趣。希望能在这里和大家一起交流学习，共同进步！</p>
+            </div>
+
+            <!-- 替换原有选项卡内容 -->
+            <div class="project-experience-card">
+                <h3><i class="fas fa-project-diagram"></i> 项目经历</h3>
+                <div class="project-item-profile">
+                    <h4>校园论坛系统 (Web全栈)</h4>
+                    <p class="date">2025年春季 - 2025年夏季</p>
+                    <p>参与设计和开发了一个功能完善的校园在线交流平台。负责前端用户界面实现、后端API接口设计以及数据库交互逻辑。</p>
+                    <p><strong>技术栈:</strong> HTML, CSS, JavaScript, PHP, MySQL</p>
+                </div>
+                <div class="project-item-profile">
+                    <h4>基于博弈树搜索的同化棋对抗AI (C++)</h4>
+                    <p class="date">2025年春季</p>
+                    <p>使用C++实现，通过Alpha-Beta剪枝优化博弈树搜索，结合评估函数设计了一个具有一定水平的同化棋AI。</p>
+                    <p><strong>技术栈:</strong> C++, Minimax, Alpha-Beta Pruning</p>
+                </div>
+            </div>
+
+            <div class="tech-stack-card">
+                <h3><i class="fas fa-cogs"></i> 技术栈</h3>
+                <div class="tech-item">
+                    <h4>编程语言</h4>
+                    <p>熟练掌握 C/C++, Python, Java, JavaScript, PHP</p>
+                </div>
+                <div class="tech-item">
+                    <h4>前端技术</h4>
+                    <p>HTML5, CSS3, Vue.js, Element UI, ECharts</p>
+                </div>
+                <div class="tech-item">
+                    <h4>后端技术</h4>
+                    <p>Spring Boot, Node.js, MySQL, Redis, Nginx</p>
+                </div>
+                <div class="tech-item">
+                    <h4>其他工具与技能</h4>
+                    <p>Git, Docker, Linux, 计算机网络, 操作系统原理</p>
+                </div>
+            </div>
+            <!-- Tab container and its content (posts, replies, favorites) removed -->
+        </div>
+    </div>
+        
+</body>
+
+</html>

@@ -1498,6 +1498,260 @@ input[type="radio"]:checked + .radio-label {
     background-color: #5a6268;
 }
 
+/* Styles for contact-team.html */
+.contact-team-title {
+    text-align: center;
+    color: #1e3a8a;
+    margin-bottom: 20px;
+    font-size: 2em; /* 确保标题突出 */
+}
+
+.contact-team-intro {
+    text-align: center;
+    color: #555;
+    margin-bottom: 40px; /* 增加与卡片间距 */
+    line-height: 1.7;
+    font-size: 1.1em;
+    max-width: 700px; /* 限制段落宽度使其更易读 */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.developer-cards-container {
+    display: flex;
+    flex-direction: column; /* 垂直排列行 */
+    align-items: center; /* 水平居中行 */
+    gap: 25px; 
+    margin-bottom: 40px;
+}
+
+.developer-row {
+    display: flex;
+    justify-content: center; /* 在行内居中卡片 */
+    gap: 25px; /* 行内卡片之间的间距 */
+    width: 100%; /* 允许行占据全部可用宽度 */
+    flex-wrap: wrap; /* 允许底部行的卡片在小屏幕上换行 */
+}
+
+.developer-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px; /* 更圆润的边角 */
+    padding: 25px;
+    width: 100%;
+    max-width: 320px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* 稍明显的阴影 */
+    text-align: center;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 使内容垂直分布，按钮在底部 */
+}
+
+.developer-card:hover {
+    transform: translateY(-8px); /* 悬停时上移更多 */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.developer-card h2 {
+    color: #1e3a8a;
+    margin-top: 0;
+    margin-bottom: 15px; /* 增加与描述的间距 */
+    font-size: 1.6em;
+}
+
+.developer-card p {
+    color: #666;
+    font-size: 1em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1; /* 使描述部分占据可用空间 */
+    min-height: 70px; 
+}
+
+.profile-link {
+    display: inline-block;
+    background-color: #1e3a8a;
+    color: white;
+    padding: 12px 25px; /* 增加按钮内边距 */
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.2s;
+    align-self: center; /* 使按钮在卡片内居中 */
+}
+
+.profile-link:hover {
+    background-color: #152b5e;
+    transform: scale(1.05); /* 按钮悬停时轻微放大 */
+}
+
+.back-to-home-container {
+    text-align: center;
+    margin-top: 30px; /* 增加与上方内容的间距 */
+}
+
+/* Generic styled back button */
+.button-styled-back {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 12px 25px; /* 增加内边距 */
+    border-radius: 6px; /* 匹配其他按钮 */
+    text-decoration: none;
+    font-weight: 500;
+    border: 1px solid #ccc; /* 稍暗的边框 */
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.button-styled-back:hover {
+    background-color: #e9e9e9;
+    color: #1e3a8a;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+}
+
+/* Profile page navigation link (e.g., back to team page) - This style is now removed */
+/* .profile-page-nav-link { ... } */
+/* .profile-page-nav-link:hover { ... } */
+
+
+/* 导航栏样式 */
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    position: relative; /* Added for absolute positioning of nav links */
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+.nav-logo h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+nav li {
+    margin-left: 20px;
+}
+
+nav a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #1e3a8a;
+}
+
+.user-actions a {
+    margin-left: 15px;
+    text-decoration: none;
+}
+
+.login-btn {
+    color: #1e3a8a;
+    font-weight: bold;
+}
+
+.register-btn {
+    background-color: #1e3a8a;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.register-btn:hover {
+    background-color: #152b5e;
+}
+
+/* 新增个人资料导航链接样式 */
+.profile-nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+    position: absolute; /* Common for top-left and top-right */
+    z-index: 10; /* Ensure it's above other header content if overlapping */
+}
+
+.profile-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.profile-nav-link.top-left {
+    top: 15px; /* Adjust as needed */
+    left: 15px; /* Adjust as needed */
+}
+
+.profile-nav-link.top-right {
+    top: 15px; /* Adjust as needed */
+    right: 15px; /* Adjust as needed */
+}
+
+/* 主容器 */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* 页脚样式 */
+footer {
+    background-color: #1e3a8a;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(30, 58, 138, 0.1);
+    z-index: 1;
+}
+
+footer .container {
+    position: relative;
+    z-index: 2;
+}
 
 /* 响应式设计优化 */
 @media (max-width: 768px) {
