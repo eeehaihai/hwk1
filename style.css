@@ -300,19 +300,19 @@ nav a:hover {
     box-shadow: 0 0 5px rgba(0,0,0,0.05);
 }
 
-.filter-options, .sort-options { /* Combined .sort-options here */
+.filter-options, .sort-options { /* 此处合并了 .sort-options */
     display: flex;
     gap: 15px;
 }
 
-.filter-options a, .sort-options a { /* Combined rule */
+.filter-options a, .sort-options a { /* 合并的规则 */
     color: #666;
     text-decoration: none;
     transition: color 0.3s;
 }
 
 .filter-options a.active, .filter-options a:hover,
-.sort-options a.active, .sort-options a:hover { /* Combined rule */
+.sort-options a.active, .sort-options a:hover { /* 合并的规则 */
     color: #1e3a8a;
     font-weight: 500;
 }
@@ -536,10 +536,10 @@ nav a:hover {
 }
 
 /* 页脚样式 - 旧样式将被移除或注释 */
-/* Removed old footer styles */
+/* 移除了旧的页脚样式 */
 
 /* 新的左下角信息块样式 - 旧样式将被移除或注释 */
-/* Removed old #bottomLeftInfoBlock styles */
+/* 移除了旧的 #bottomLeftInfoBlock 样式 */
 
 /* 侧边栏内友情链接列表样式 */
 .sidebar-widget .info-links-list {
@@ -921,7 +921,7 @@ input[type="radio"]:checked + .radio-label {
     margin-bottom: 30px;
 }
 
-.comment-header { /* This .comment-header is for the section, distinct from .comment-item's header */
+.comment-header { /* 这个 .comment-header 是用于区域的，区别于 .comment-item 的头部 */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -990,13 +990,13 @@ input[type="radio"]:checked + .radio-label {
     min-width: 0; /* 为了flex项在需要时可以缩小 */
 }
 
-.comment-item .comment-header { /* Specific to comment item's header */
+.comment-item .comment-header { /* 特定于评论项头部 */
     display: flex;
     justify-content: space-between;
     align-items: flex-start; /* 顶部对齐 */
     margin-bottom: 12px;
-    border-bottom: none; /* No border for this inner header */
-    padding-bottom: 0; /* No padding for this inner header */
+    border-bottom: none; /* 这个内部头部没有边框 */
+    padding-bottom: 0; /* 这个内部头部没有内边距 */
 }
 
 .comment-author-details {
@@ -1111,19 +1111,19 @@ input[type="radio"]:checked + .radio-label {
 
 
 /* 图片模态框样式 */
-.reply-modal-overlay, .image-modal { /* Combined base for modal overlays */
+.reply-modal-overlay, .image-modal { /* flex 显示时的公共样式 */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    justify-content: center; /* Common for when display is flex */
-    align-items: center;     /* Common for when display is flex */
+    justify-content: center; /* flex 显示时的公共样式 */
+    align-items: center;     /* flex 显示时的公共样式 */
 }
 
 .image-modal {
-    display: none; /* 默认隐藏, JS changes to display: flex */
-    /* position, top, left, width, height, justify-content, align-items are inherited or set when active */
+    display: none; /* 默认隐藏, JS会将其改为display: flex */
+    /* position, top, left, width, height, justify-content, align-items 继承或在激活时设置 */
     z-index: 1001;   /* 置于顶层 */
     background-color: rgba(0, 0, 0, 0.85); /* 半透明黑色背景 */
     overflow: auto; /* 如果内容超出则允许滚动，但通常图片会缩放 */
@@ -1414,7 +1414,7 @@ input[type="radio"]:checked + .radio-label {
     gap: 10px;
 }
 
-.cancel-btn, .submit-btn { /* Combined base for modal footer buttons */
+.cancel-btn, .submit-btn { /* 模态框底部按钮的公共基础样式 */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -1426,7 +1426,7 @@ input[type="radio"]:checked + .radio-label {
 
 .cancel-btn {
     background-color: #6c757d;
-    /* Inherits common styles */
+    /* 继承公共样式 */
 }
 
 .cancel-btn:hover {
@@ -1435,8 +1435,8 @@ input[type="radio"]:checked + .radio-label {
 
 .submit-btn {
     background-color: #1e3a8a;
-    /* Inherits common styles */
-    font-weight: bold; /* Specific to submit-btn */
+    /* 继承公共样式 */
+    font-weight: bold; /* 特定于提交按钮 */
 }
 
 .submit-btn:hover {
@@ -1478,13 +1478,13 @@ input[type="radio"]:checked + .radio-label {
     font-size: 13px;
     border-radius: 4px;
     cursor: pointer;
-    border: none; /* Common for inline buttons */
-    color: white; /* Common for inline buttons */
+    border: none; /* 内联按钮的公共样式 */
+    color: white; /* 内联按钮的公共样式 */
 }
 
 .inline-reply-submit-btn {
     background-color: #1e3a8a;
-    /* Inherits common styles from .inline-reply-box button */
+    /* 继承自 .inline-reply-box button 的公共样式 */
 }
 .inline-reply-submit-btn:hover {
     background-color: #152b5e;
@@ -1492,7 +1492,7 @@ input[type="radio"]:checked + .radio-label {
 
 .inline-reply-cancel-btn {
     background-color: #6c757d;
-    /* Inherits common styles from .inline-reply-box button */
+    /* 继承自 .inline-reply-box button 的公共样式 */
 }
 .inline-reply-cancel-btn:hover {
     background-color: #5a6268;
@@ -1634,7 +1634,7 @@ input[type="radio"]:checked + .radio-label {
     justify-content: space-between;
     align-items: center;
     height: 60px;
-    position: relative; /* Added for absolute positioning of nav links */
+    position: relative; /* 为导航链接添加绝对定位 */
 }
 
 .nav-logo {
@@ -1702,8 +1702,8 @@ nav a:hover {
     border-radius: 5px;
     font-size: 0.9rem;
     transition: background-color 0.3s;
-    position: absolute; /* Common for top-left and top-right */
-    z-index: 10; /* Ensure it's above other header content if overlapping */
+    position: absolute; /* 左上角和右上角的公共样式 */
+    z-index: 10; /* 确保在重叠时位于其他头部内容之上 */
 }
 
 .profile-nav-link:hover {
