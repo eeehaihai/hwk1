@@ -403,11 +403,9 @@ nav a:hover {
     margin-bottom: 10px;
 }
 
-.topic-author, .topic-time, .topic-views {
+.topic-author, .topic-time, .topic-views，.topic-comments {
     margin-right: 15px;
 }
-
-/* .topic-content is defined above */
 
 .topic-footer {
     display: flex;

@@ -293,6 +293,7 @@
                     <span class="topic-author">${safeHtml(post.author)}</span>
                     <span class="topic-time">${formatTime(post.timestamp)}</span>
                     <span class="topic-views">浏览 ${post.views}</span>
+                    <span class="topic-comments">评论 ${post.comments || 0}</span>
                 </div>
                 <div class="topic-content">${safeHtml(contentPreview)}</div>
                 <div class="topic-footer">
@@ -300,7 +301,7 @@
                         <span class="${likeButtonClass}" onclick="likeTopicInList('${post.id}', event)">
                             <span class="like-icon">❤</span> 点赞 <span class="like-count">${post.likes || 0}</span>
                         </span>
-                        <span>评论 ${post.comments || 0}</span>
+                        
                     </div>
                     <div class="topic-action">
                         <a href="#" onclick="event.preventDefault(); event.stopPropagation(); viewTopic('${post.id}');">参与讨论</a>
