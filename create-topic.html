@@ -77,9 +77,44 @@
                 return;
             }
             
-            // 设置图片预览，确保 'images-count' ID 存在或 common.js 中相应调整
-            // 如果 create-topic.html 中 span id 是 'file-count', common.js 的 setupImagePreview 需要能处理这个
-            setupImagePreview('images', 'preview-container', 9, 'file-count'); // 传递 file-count ID
+            // 获取图片输入元素、预览容器和文件计数元素
+            const imagesInput = document.getElementById('images');
+            const previewContainer = document.getElementById('preview-container');
+            const fileCountSpan = document.getElementById('file-count');
+            const maxFiles = 9; // 发表话题时最多上传9张
+
+            if (imagesInput && previewContainer && fileCountSpan) {
+                imagesInput.addEventListener('change', function(event) {
+                    const files = event.target.files;
+                    const numFiles = files.length;
+
+                    // 更新文件计数显示
+                    fileCountSpan.textContent = numFiles > 0 ? `已选择 ${numFiles} 个文件` : '未选择文件';
+
+                    // 清空之前的预览
+                    previewContainer.innerHTML = '';
+
+                    // 创建并显示新选择的图片预览
+                    for (let i = 0; i < Math.min(numFiles, maxFiles); i++) {
+                        const file = files[i];
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                // 应用与 topic-detail.html 模态框中类似的预览样式
+                                img.style.width = '80px';
+                                img.style.height = '80px';
+                                img.style.objectFit = 'cover';
+                                img.style.borderRadius = '4px';
+                                img.style.margin = '5px'; // 添加一些间距
+                                previewContainer.appendChild(img);
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+            }
             
             // 处理表单提交
             handleFormSubmit(document.getElementById('topicForm'), 'topics.php', 
