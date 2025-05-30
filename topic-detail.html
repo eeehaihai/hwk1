@@ -184,10 +184,10 @@
                             ${tagsHtml}
                             <div class="topic-stats">
                                 <button id="likeButton" class="action-button ${post.currentUserLiked ? 'liked' : ''}" onclick="likeTopic('${topicId}')">
-                                    <span class="like-icon">❤</span> 点赞 <span id="likeCount">${post.likes || 0}</span>
+                                    <span class="like-icon">❤</span> 点赞 ${post.likes || 0}
                                 </button>
                                 <button class="action-button">
-                                    <span class="comment-icon">💬</span> 楼层 <span>${post.comments || 0}</span>
+                                    <span class="comment-icon">💬</span> 楼层 ${post.comments || 0}
                                 </button>
                                 ${deleteButtonHtml}
                             </div>
