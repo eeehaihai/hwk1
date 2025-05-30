@@ -94,6 +94,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
     $category = isset($_GET['category']) ? $_GET['category'] : 'all';
     $sortBy = isset($_GET['sortBy']) ? $_GET['sortBy'] : 'newest';
     $timeRange = isset($_GET['timeRange']) ? $_GET['timeRange'] : '1w'; // 默认一周
+    $searchTerm = isset($_GET['searchTerm']) ? strtolower(trim($_GET['searchTerm'])) : null;
     
     // 读取话题文件
     $topics = readJsonFile($topicsFile, []);
@@ -107,6 +108,28 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
             }
         }
         $topics = $filteredTopics;
+    }
+
+    // 如果有搜索词，则进一步筛选
+    if ($searchTerm !== null && $searchTerm !== '') {
+        $searchedTopics = [];
+        foreach ($topics as $topic) {
+            $titleMatch = stripos($topic['title'], $searchTerm) !== false;
+            $contentMatch = stripos($topic['content'], $searchTerm) !== false;
+            $tagsMatch = false;
+            if (isset($topic['tags']) && is_array($topic['tags'])) {
+                foreach ($topic['tags'] as $tag) {
+                    if (stripos($tag, $searchTerm) !== false) {
+                        $tagsMatch = true;
+                        break;
+                    }
+                }
+            }
+            if ($titleMatch || $contentMatch || $tagsMatch) {
+                $searchedTopics[] = $topic;
+            }
+        }
+        $topics = $searchedTopics;
     }
 
     // 添加点赞数和当前用户点赞状态
@@ -144,15 +167,20 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['id'])) {
         }
         $timeAgoJs = $timeAgo * 1000; // 转换为 JavaScript 时间戳
         
-        // 计算热度分数 - 基于指定时间范围内的评论数+点赞数，并移除临时字段
-        foreach ($topics as $key => &$topic) {
+        // 首先筛选出在时间范围内的帖子
+        $topicsInTimeRange = [];
+        foreach ($topics as $topic) {
             if ($topic['timestamp'] >= $timeAgoJs) {
-                // 指定时间范围内的帖子，热度 = 评论数 + 点赞数
-                $topic['hotScore'] = ($topic['comments'] ?? 0) + ($topic['likes'] ?? 0);
-            } else {
-                // 超过指定时间范围的帖子热度为0
-                $topic['hotScore'] = 0;
+                $topicsInTimeRange[] = $topic;
             }
+        }
+        $topics = $topicsInTimeRange; // 更新$topics为筛选后的结果
+
+        // 计算热度分数 - 基于指定时间范围内的评论数+点赞数，并移除临时字段
+        // 由于已经筛选过，$topics中的所有帖子都在时间范围内
+        foreach ($topics as $key => &$topic) {
+            // 指定时间范围内的帖子，热度 = 评论数 + 点赞数
+            $topic['hotScore'] = ($topic['comments'] ?? 0) + ($topic['likes'] ?? 0);
         }
         unset($topic); // 解除引用
         

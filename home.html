@@ -107,13 +107,18 @@
     </div>
 
     <script>
+        let currentSearchTerm = null; // 全局变量存储当前搜索词
+        let currentCategory = 'all';
+        let currentSortBy = 'newest';
+        let currentTimeRange = '1w';
+
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
             // 更新导航栏用户状态
             updateNavUserStatus();
 
             // 加载并显示话题列表 (默认排序和分类)
-            loadTopics();
+            loadTopics(currentCategory, currentSortBy, currentTimeRange, currentSearchTerm);
 
             // 获取所有帖子数据一次，然后传递给侧边栏更新函数
             getAllPosts(function(allPostsData) {
@@ -139,37 +144,31 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
 
-                    // 移除之前的active类
                     document.querySelectorAll('.filter-options a').forEach(item => {
                         item.classList.remove('active');
                     });
-
-                    // 添加active类到当前点击项
                     this.classList.add('active');
-
-                    // 根据分类筛选话题
-                    const category = this.getAttribute('data-category');
-                    loadTopics(category);
+                    currentCategory = this.getAttribute('data-category');
+                    loadTopics(currentCategory, currentSortBy, currentTimeRange, currentSearchTerm);
                 });
             });
 
             // 设置排序点击事件
-            document.querySelectorAll('.sort-options a[data-sort]').forEach(link => {
+            document.querySelectorAll('.sort-options a[data-sort], .sort-options .sort-option-group a[data-sort]').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
 
-                    const currentSortBy = this.getAttribute('data-sort');
-                    const currentCategory = document.querySelector('.filter-options a.active').getAttribute('data-category');
+                    const newSortBy = this.getAttribute('data-sort');
 
-                    if (currentSortBy === 'hottest') {
-                        // 如果点击的是热门主按钮，默认使用上次选择或“一星期”
+                    if (newSortBy === 'hottest') {
                         const activeTimeRangeLink = document.querySelector('.hottest-tooltip a.selected');
-                        const timeRange = activeTimeRangeLink ? activeTimeRangeLink.getAttribute('data-timerange') : '1w';
+                        currentTimeRange = activeTimeRangeLink ? activeTimeRangeLink.getAttribute('data-timerange') : '1w';
+                        currentSortBy = 'hottest';
 
                         document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
                             item.classList.remove('active');
                         });
-                        this.classList.add('active');
+                        document.getElementById('hottestSortLink').classList.add('active'); // 激活热门主按钮
 
                         if (!activeTimeRangeLink) { // 默认选中“一星期”
                              const defaultTimeRangeLink = document.querySelector('.hottest-tooltip a[data-timerange="1w"]');
@@ -179,19 +178,19 @@
                                  defaultTimeRangeLink.classList.add('selected');
                              }
                         }
-                        loadTopics(currentCategory, currentSortBy, timeRange);
                     } else {
-                        document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
-                            item.classList.remove('active');
-                        });
-                        this.classList.add('active');
+                        currentSortBy = newSortBy;
                         // 清除热门时间范围选择
                         document.querySelectorAll('.hottest-tooltip a').forEach(item => {
                             item.classList.remove('selected');
                             item.querySelector('.checkmark').textContent = '';
                         });
-                        loadTopics(currentCategory, currentSortBy);
+                        document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        this.classList.add('active'); // 激活当前排序按钮
                     }
+                    loadTopics(currentCategory, currentSortBy, currentTimeRange, currentSearchTerm);
                 });
             });
 
@@ -225,18 +224,16 @@
                 hottestTooltip.querySelectorAll('a').forEach(timeRangeLink => {
                     timeRangeLink.addEventListener('click', function(e) {
                         e.preventDefault();
-                        e.stopPropagation(); // 阻止冒泡到父级 a 标签的点击事件
+                        e.stopPropagation(); 
 
-                        const timeRange = this.getAttribute('data-timerange');
-                        const category = document.querySelector('.filter-options a.active').getAttribute('data-category');
+                        currentTimeRange = this.getAttribute('data-timerange');
+                        currentSortBy = 'hottest'; // 确保排序方式为热门
 
-                        // 更新排序选项的 active 状态
                         document.querySelectorAll('.sort-options > a, .sort-options > .sort-option-group > a').forEach(item => {
                             item.classList.remove('active');
                         });
                         hottestSortLink.classList.add('active');
 
-                        // 更新悬浮窗内选项的选中状态和√标记
                         hottestTooltip.querySelectorAll('a').forEach(item => {
                             item.classList.remove('selected');
                             item.querySelector('.checkmark').textContent = '';
@@ -244,8 +241,8 @@
                         this.classList.add('selected');
                         this.querySelector('.checkmark').textContent = '√';
 
-                        loadTopics(category, 'hottest', timeRange);
-                        hottestTooltip.style.display = 'none'; // 点击后隐藏悬浮窗
+                        loadTopics(currentCategory, currentSortBy, currentTimeRange, currentSearchTerm);
+                        hottestTooltip.style.display = 'none';
                     });
                 });
             }
@@ -322,31 +319,52 @@
         }
 
         // 加载话题列表
-        function loadTopics(category = 'all', sortBy = 'newest', timeRange = null) {
+        function loadTopics(category = 'all', sortBy = 'newest', timeRange = null, searchTerm = null) {
+            currentCategory = category; // 更新全局状态
+            currentSortBy = sortBy;
+            currentTimeRange = timeRange;
+            // currentSearchTerm is already global
+
             const topicListContainer = document.getElementById('topicListContainer');
+            const searchResultInfoEl = document.querySelector('.search-result-info');
+            if (searchResultInfoEl) { // 如果存在旧的搜索结果信息，先移除
+                searchResultInfoEl.remove();
+            }
             topicListContainer.innerHTML = '<div class="loading">加载中...</div>';
 
             let apiUrl = `topics.php?category=${category}&sortBy=${sortBy}`;
             if (sortBy === 'hottest' && timeRange) {
                 apiUrl += `&timeRange=${timeRange}`;
             }
+            if (searchTerm && searchTerm.trim() !== "") {
+                apiUrl += `&searchTerm=${encodeURIComponent(searchTerm.trim())}`;
+            }
 
-            // 使用通用AJAX请求函数
             sendAjaxRequest('GET', apiUrl, null,
                 function(response) {
                     if (response.success) {
                         const posts = response.topics;
+                        topicListContainer.innerHTML = ''; // 清空加载提示
 
-                        // 如果没有帖子，显示提示
+                        if (searchTerm && searchTerm.trim() !== "") {
+                            const resultInfo = document.createElement('div');
+                            resultInfo.className = 'search-result-info';
+                            resultInfo.innerHTML = `找到 ${posts.length} 个与 "${safeHtml(searchTerm)}" 相关的话题 (在当前分类下)`;
+                            topicListContainer.parentNode.insertBefore(resultInfo, topicListContainer);
+                        }
+
                         if (posts.length === 0) {
-                            topicListContainer.innerHTML = '<div class="no-topics">暂无话题，快来发布第一个话题吧！</div>';
+                            if (!(searchTerm && searchTerm.trim() !== "")) { // 仅当不是搜索结果为空时显示默认提示
+                                topicListContainer.innerHTML = '<div class="no-topics">暂无话题，快来发布第一个话题吧！</div>';
+                            } else if (!document.querySelector('.search-result-info')) { // 确保搜索提示已添加
+                                const resultInfo = document.createElement('div');
+                                resultInfo.className = 'search-result-info';
+                                resultInfo.innerHTML = `没有找到与 "${safeHtml(searchTerm)}" 相关的话题 (在当前分类下)`;
+                                topicListContainer.parentNode.insertBefore(resultInfo, topicListContainer);
+                            }
                             return;
                         }
 
-                        // 清空加载提示
-                        topicListContainer.innerHTML = '';
-
-                        // 显示每个帖子
                         posts.forEach(post => {
                             const topicCard = createTopicCard(post);
                             topicListContainer.appendChild(topicCard);
@@ -471,39 +489,18 @@
 
         // 搜索帖子
         function searchPosts() {
-            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            const searchTermInput = document.getElementById('searchInput').value;
+            currentSearchTerm = searchTermInput.trim(); // 更新全局搜索词
 
-            if (!searchTerm) {
-                alert('请输入搜索关键词');
-                return;
-            }
-
-            const topicListContainer = document.getElementById('topicListContainer');
-            topicListContainer.innerHTML = '<div class="loading">搜索中...</div>';
-
-            getAllPosts(function(posts) {
-                // 根据关键词搜索帖子（标题、内容和标签）
-                const filteredPosts = posts.filter(post =>
-                    post.title.toLowerCase().includes(searchTerm) ||
-                    post.content.toLowerCase().includes(searchTerm) ||
-                    (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
-                );
-
-                // 显示搜索结果
-                if (filteredPosts.length === 0) {
-                    topicListContainer.innerHTML = `<div class="no-topics">没有找到与 "${safeHtml(searchTerm)}" 相关的话题</div>`;
-                    return;
+            // 如果搜索词为空，则加载当前分类和排序的全部内容
+            if (currentSearchTerm === "") {
+                const searchResultInfoEl = document.querySelector('.search-result-info');
+                if (searchResultInfoEl) {
+                    searchResultInfoEl.remove();
                 }
-
-                // 清空现有内容
-                topicListContainer.innerHTML = `<div class="search-result-info">找到 ${filteredPosts.length} 个与 "${safeHtml(searchTerm)}" 相关的话题</div>`;
-
-                // 显示每个帖子
-                filteredPosts.forEach(post => {
-                    const topicCard = createTopicCard(post);
-                    topicListContainer.appendChild(topicCard);
-                });
-            });
+            }
+            // 调用 loadTopics，它会使用全局的 currentCategory, currentSortBy, currentTimeRange 和新的 currentSearchTerm
+            loadTopics(currentCategory, currentSortBy, currentTimeRange, currentSearchTerm);
         }
 
         // 获取分类列表的辅助函数
