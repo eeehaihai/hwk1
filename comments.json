@@ -45,5 +45,27 @@
             "floor": 2,
             "replies": []
         }
+    ],
+    "6839769fc84a3": [
+        {
+            "id": "68398a7cdaf8a",
+            "content": "好",
+            "images": [],
+            "author": "admin",
+            "timestamp": 1748601468000,
+            "likedBy": [],
+            "floor": 1,
+            "replies": []
+        },
+        {
+            "id": "68398e1db777b",
+            "content": "666",
+            "images": [],
+            "author": "admin",
+            "timestamp": 1748602397000,
+            "likedBy": [],
+            "floor": 2,
+            "replies": []
+        }
     ]
 }

@@ -35,7 +35,7 @@
             
             <div class="links">
                 <a href="register.html">注册新账号</a>
-                <a href="forgot-password.html">忘记密码？</a>
+                <a href="javascript:void(0);" onclick="showForgotPasswordAlert()">忘记密码？</a>
             </div>
         </form>
     </div>
@@ -111,6 +111,10 @@
             
             xhr.send(formData);
         });
+
+        function showForgotPasswordAlert() {
+            alert("暂不支持，请联系网站作者");
+        }
     </script>
 </body>
 </html>

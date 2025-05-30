@@ -42,8 +42,10 @@
         "anonymous": false,
         "author": "dwadwa",
         "timestamp": 1748596383000,
-        "views": 0,
-        "likedBy": [],
-        "comments": 0
+        "views": 21,
+        "likedBy": [
+            "admin"
+        ],
+        "comments": 2
     }
 ]

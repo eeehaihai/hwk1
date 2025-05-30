@@ -184,10 +184,10 @@
                             ${tagsHtml}
                             <div class="topic-stats">
                                 <button id="likeButton" class="action-button ${post.currentUserLiked ? 'liked' : ''}" onclick="likeTopic('${topicId}')">
-                                    <span class="like-icon">❤</span> 点赞 ${post.likes || 0}
+                                    <span class="like-icon">❤</span> 点赞 <span class="like-count-text">${post.likes || 0}</span>
                                 </button>
                                 <button class="action-button">
-                                    <span class="comment-icon">💬</span> 楼层 ${post.comments || 0}
+                                    <span class="comment-icon">💬</span> 楼层 <span class="commentCount">${post.comments || 0}</span>
                                 </button>
                                 ${deleteButtonHtml}
                             </div>
@@ -236,7 +236,9 @@
         // 点赞功能
         function likeTopic(topicId) {
             const likeButton = document.getElementById('likeButton');
-            const likeCountEl = document.getElementById('likeCount');
+            
+            const likeCountSpan = likeButton ? likeButton.querySelector('.like-count-text') : null; 
+            
             if (!checkLoginRequired()) return;
 
             // 使用通用AJAX请求函数
@@ -244,7 +246,9 @@
                 function(response) {
                     if (response.success) {
                         // 更新显示的点赞数
-                        likeCountEl.textContent = response.likes;
+                        if (likeCountSpan) { 
+                            likeCountSpan.textContent = response.likes;
+                        }
                         // 更新按钮样式
                         if (response.isLikedByCurrentUser) {
                             likeButton.classList.add('liked');
