@@ -64,12 +64,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 使用 readJsonFile 工具函数
     $users = readJsonFile($usersFile, ['users' => []]);
     
-    // 检查用户名是否已存在
+    // 检查用户名和邮箱是否已存在
     foreach ($users['users'] as $user) {
         if ($user['username'] === $username) {
             echo json_encode([
                 'success' => false,
                 'message' => '用户名已被使用'
+            ]);
+            exit;
+        }
+        if (isset($user['email']) && $user['email'] === $email) {
+            echo json_encode([
+                'success' => false,
+                'message' => '电子邮箱已被注册'
             ]);
             exit;
         }
