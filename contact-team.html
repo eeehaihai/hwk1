@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系开发团队 - 校园论坛</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="home.html" class="logo">
+                <h1>校园论坛</h1>
+            </a>
+            <div class="user-actions">
+                <!-- JS will update this -->
+            </div>
+        </div>
+    </header>
+
+    <div class="container page-container">
+        <h1 class="contact-team-title">联系我们的开发团队</h1>
+        <p class="contact-team-intro">感谢您使用校园论坛！如果您有任何建议或想了解更多关于我们的开发者，请通过以下链接访问他们的个人主页。</p>
+        
+        <div class="developer-cards-container">
+            <div class="developer-row top-row">
+                <div class="developer-card">
+                    <h2>tianwm</h2>
+                    <p>热爱编程和技术分享，积极参与社区建设，探索Web技术前沿。</p>
+                    <a href="profile/tianwm.html" class="profile-link">查看主页</a>
+                </div>
+            </div>
+            <div class="developer-row bottom-row">
+                <div class="developer-card">
+                    <h2>zhouck</h2>
+                    <p>计算机科学与技术专业学生，对全栈开发和新技术充满热情。</p>
+                    <a href="profile/zhouck.html" class="profile-link">查看主页</a>
+                </div>
+                <div class="developer-card">
+                    <h2>zhangh</h2>
+                    <p>专注于软件开发与游戏设计，致力于创造有趣和实用的应用程序。</p>
+                    <a href="profile/zhangh.html" class="profile-link">查看主页</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="back-to-home-container">
+            <a href="home.html" class="button-styled-back">返回首页</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavUserStatus();
+        });
+    </script>
+</body>
+</html>

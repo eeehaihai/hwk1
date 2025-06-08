@@ -2,6 +2,9 @@
 // 设置响应类型为JSON
 header('Content-Type: application/json');
 
+// 引入工具函数，以便使用 getDetailedSaveError
+require_once 'utils.php';
+
 // 检查是否为POST请求
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 获取用户提交的注册数据
@@ -9,10 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     $email = isset($_POST['email']) ? $_POST['email'] : '';
     $phone = isset($_POST['phone']) ? $_POST['phone'] : '';
-    $nickname = isset($_POST['nickname']) ? $_POST['nickname'] : ''; // 保留昵称
+    $nickname = isset($_POST['nickname']) ? $_POST['nickname'] : ''; 
     
     // 简单验证
-    if (empty($username) || empty($password) || empty($email) || empty($phone) || empty($nickname)) { // 添加昵称验证
+    if (empty($username) || empty($password) || empty($email) || empty($phone) || empty($nickname)) { 
         echo json_encode([
             'success' => false,
             'message' => '请填写所有必填字段'
@@ -58,14 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // 读取用户数据文件
     $usersFile = 'users.json';
-    if (file_exists($usersFile)) {
-        $usersData = file_get_contents($usersFile);
-        $users = json_decode($usersData, true);
-    } else {
-        $users = ['users' => []];
-    }
+    // 使用 readJsonFile 工具函数
+    $users = readJsonFile($usersFile, ['users' => []]);
     
-    // 检查用户名是否已存在
+    // 检查用户名和邮箱是否已存在
     foreach ($users['users'] as $user) {
         if ($user['username'] === $username) {
             echo json_encode([
@@ -74,20 +73,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             exit;
         }
+        if (isset($user['email']) && $user['email'] === $email) {
+            echo json_encode([
+                'success' => false,
+                'message' => '电子邮箱已被注册'
+            ]);
+            exit;
+        }
     }
     
     // 添加新用户
     $users['users'][] = [
         'username' => $username,
-        'password' => $password,
+        'password' => $password, // 注意：实际项目中密码应哈希存储
         'email' => $email,
         'phone' => $phone,
-        'nickname' => $nickname, // 保留昵称
+        'nickname' => $nickname, 
         'registerTime' => date('Y-m-d H:i:s')
     ];
     
-    // 保存到文件
-    if (file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT))) {
+    // 保存到文件，使用 saveJsonFile 工具函数
+    if (saveJsonFile($usersFile, $users)) {
         echo json_encode([
             'success' => true,
             'message' => '注册成功'

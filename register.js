@@ -96,6 +96,6 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("username").addEventListener("blur", validateUsername);
     document.getElementById("email").addEventListener("blur", validateEmail);
     document.getElementById("phone").addEventListener("blur", validatePhone);
-    document.getElementById("password").addEventListener("blur", checkPasswordMatch);
+    document.getElementById("password").addEventListener("blur", checkPasswordMatch); // 密码字段也应触发匹配检查
     document.getElementById("confirm_password").addEventListener("blur", checkPasswordMatch);
 });

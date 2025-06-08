@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>吉大树洞 - 话题详情</title>
+    <title>校园论坛 - 话题详情</title>
     <link rel="stylesheet" href="style.css">
     <script src="common.js"></script>
 </head>
@@ -12,11 +12,11 @@
     <header>
         <div class="container header-content">
             <a href="home.html" class="logo">
-                <h1>吉大树洞</h1>
+                <h1>校园论坛</h1>
             </a>
 
             <div class="user-actions">
-                <!-- 这里会通过JS动态更新用户登录状态 -->
+                <!-- 此处会通过JS动态更新用户登录状态 -->
             </div>
         </div>
     </header>
@@ -31,23 +31,49 @@
 
             <!-- 评论列表区域 -->
             <div class="comment-section">
-                <h2>全部评论 <span id="commentCount">0</span></h2>
+                <div class="comment-header">
+                    <h2>全部评论 <span id="commentCount">0</span></h2>
+                    <div class="comment-sort-options">
+                        <a href="#" class="active" data-sort="floor_asc">正序</a>
+                        <a href="#" data-sort="floor_desc">降序</a>
+                        <a href="#" data-sort="hot">热门</a>
+                    </div>
+                </div>
                 <div id="commentList" class="comment-list">
                     <div class="loading">正在加载评论...</div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- 回复表单区域 -->
-            <div class="reply-form-section">
-                <h2>发表评论</h2>
+    <!-- 浮动回复按钮 (用于回复话题) -->
+    <div class="floating-reply-btn" id="floatingReplyBtnMainTopic" onclick="openReplyModalForTopic()">
+        <span class="reply-icon">💬</span>
+        <span class="reply-text">回复话题</span>
+    </div>
+
+    <!-- 回复话题的模态框 (居中) -->
+    <div id="replyModal" class="reply-modal-overlay" style="display: none;">
+        <div class="reply-modal-content" id="replyModalContent">
+            <div class="reply-modal-header">
+                <h3 id="replyModalTitle">回复话题</h3>
+                <span class="reply-modal-close" onclick="closeReplyModal()">&times;</span>
+            </div>
+            <div class="reply-modal-body">
                 <form id="replyForm">
+                    <!-- parentCommentId, replyToFloor, replyToAuthor 仅用于主回复模态框，对于话题回复，这些值为空或0 -->
+                    <input type="hidden" id="parentCommentId" name="parentCommentId" value="">
+                    <input type="hidden" id="replyToFloor" name="replyToFloor" value="0">
+                    <input type="hidden" id="replyToAuthor" name="replyToAuthor" value="">
+                    
                     <div class="form-group">
                         <label for="reply_content" class="required">评论内容</label>
-                        <textarea id="reply_content" name="reply_content" required placeholder="请输入您的评论内容..."></textarea>
+                        <textarea id="reply_content" name="reply_content" required placeholder="请输入您的评论内容..." rows="6"></textarea>
                         <div class="tips">文明发言，友善交流</div>
                     </div>
 
-                    <div class="upload-section">
+                    <!-- 图片上传区域，仅用于回复话题 -->
+                    <div class="upload-section" id="modalUploadSection">
                         <label>添加图片</label>
                         <input type="file" id="images" name="images[]" class="file-input" accept="image/*" multiple>
                         <label for="images" class="file-label">选择图片</label>
@@ -66,39 +92,36 @@
                     </div>
 
                     <div id="message" class="message-box" style="display: none;"></div>
-
-                    <div class="button-group">
-                        <button type="submit" id="submitReply">发表评论</button>
-                    </div>
                 </form>
+            </div>
+            <div class="reply-modal-footer">
+                <button type="button" class="cancel-btn" onclick="closeReplyModal()">取消</button>
+                <button type="button" class="submit-btn" onclick="submitReply()">发表评论</button>
             </div>
         </div>
     </div>
 
-    <!-- 页脚区域 -->
-    <footer>
-        <div class="container footer-content">
-            <div class="footer-links">
-                <div>
-                    <h4>友情链接</h4>
-                    <ul>
-                        <li><a href="https://www.jlu.edu.cn/" target="_blank">吉林大学官网</a></li>
-                        <li><a href="https://jdjyw.jlu.edu.cn/">吉大就业网</a></li>
-                        <li><a href="http://lib.jlu.edu.cn">吉大图书馆</a></li>
-                        <li><a href="https://ehall.jlu.edu.cn/">网上办事大厅</a></li>
-                    </ul>
-                </div>
-            </div>
+    <!-- 内联回复框 (用于回复评论/楼中楼) -->
+    <div id="inlineReplyBox" class="inline-reply-box" style="display: none;">
+        <input type="hidden" id="inlineParentCommentId">
+        <input type="hidden" id="inlineReplyToFloor">
+        <input type="hidden" id="inlineReplyToAuthor">
+        <textarea id="inlineReplyContent" placeholder="添加回复..." rows="2"></textarea>
+        <div class="inline-reply-actions">
+            <button type="button" class="inline-reply-submit-btn" onclick="submitInlineReply()">回复</button>
+            <button type="button" class="inline-reply-cancel-btn" onclick="closeInlineReplyBox()">取消</button>
         </div>
-
-        <div class="copyright">
-            <div class="container">
-                Copyright &copy; 2025 吉大树洞 All Rights Reserved. 吉ICP备XXXXXXXX号
-            </div>
-        </div>
-    </footer>
+        <div id="inlineReplyMessage" class="message-box" style="display: none; font-size: 0.9em; padding: 5px; margin-top: 5px;"></div>
+    </div>
 
     <script>
+        let currentSortBy = 'floor_asc';
+        let isReplyModalDragging = false;
+        let replyModalOffset = { x: 0, y: 0 };
+        let currentTopicCommentsData = []; // 存储当前话题的所有评论
+        const REPLIES_PER_PAGE = 5;
+        let activeInlineReplyButton = null; // 追踪哪个按钮打开了内联回复框
+
         // 获取URL中的话题ID参数
         function getTopicId() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -127,7 +150,7 @@
                             ? `<div class="topic-tags">${post.tags.map(tag => `<span class="tag">${safeHtml(tag)}</span>`).join('')}</div>`
                             : '';
 
-                        // 添加删除按钮（仅对作者显示）
+                        // 添加删除按钮（仅对作者或管理员显示）
                         const currentUser = getCurrentUser();
                         const deleteButtonHtml = (currentUser && (currentUser === post.author || currentUser === 'admin'))
                             ? `<button id="deleteButton" class="action-button delete-button" onclick="deleteTopic('${topicId}')">
@@ -160,11 +183,11 @@
                             ${imagesHtml}
                             ${tagsHtml}
                             <div class="topic-stats">
-                                <button id="likeButton" class="action-button" onclick="likeTopic('${topicId}')">
-                                    <span class="like-icon">❤</span> 点赞 <span id="likeCount">${post.likes || 0}</span>
+                                <button id="likeButton" class="action-button ${post.currentUserLiked ? 'liked' : ''}" onclick="likeTopic('${topicId}')">
+                                    <span class="like-icon">❤</span> 点赞 <span class="like-count-text">${post.likes || 0}</span>
                                 </button>
                                 <button class="action-button">
-                                    <span class="comment-icon">💬</span> 评论 <span>${post.comments || 0}</span>
+                                    <span class="comment-icon">💬</span> 评论 <span class="commentCount">${post.comments || 0}</span>
                                 </button>
                                 ${deleteButtonHtml}
                             </div>
@@ -173,10 +196,10 @@
                         topicDetailEl.innerHTML = topicHtml;
 
                         // 更新页面标题
-                        document.title = `${post.title} - 吉大树洞`;
+                        document.title = `${post.title} - 校园论坛`;
 
                         // 加载评论
-                        loadComments(topicId);
+                        loadComments(topicId, currentSortBy);
                     } else {
                         topicDetailEl.innerHTML = '<div class="error-message">话题不存在或已被删除</div>';
                     }
@@ -212,40 +235,95 @@
 
         // 点赞功能
         function likeTopic(topicId) {
-            const likeCountEl = document.getElementById('likeCount');
+            const likeButton = document.getElementById('likeButton');
+            
+            const likeCountSpan = likeButton ? likeButton.querySelector('.like-count-text') : null; 
+            
+            if (!checkLoginRequired()) return;
 
             // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'like_topic.php', { topicId: topicId },
                 function(response) {
                     if (response.success) {
                         // 更新显示的点赞数
-                        likeCountEl.textContent = response.likes;
+                        if (likeCountSpan) { 
+                            likeCountSpan.textContent = response.likes;
+                        }
+                        // 更新按钮样式
+                        if (response.isLikedByCurrentUser) {
+                            likeButton.classList.add('liked');
+                        } else {
+                            likeButton.classList.remove('liked');
+                        }
                     } else {
-                        console.error('点赞失败:', response.message);
-                        alert(response.message || '点赞失败，请稍后再试');
+                        console.error('点赞/取消点赞失败:', response.message);
+                        alert(response.message || '操作失败，请稍后再试');
                     }
                 },
                 function() {
-                    console.error('点赞请求失败');
+                    console.error('点赞/取消点赞请求失败');
+                    alert('网络错误，请稍后再试');
+                }
+            );
+        }
+
+        // 点赞评论功能
+        function likeComment(topicId, commentId, event) {
+            if (!checkLoginRequired()) return;
+            // 如果点赞按钮在内联回复框内被点击，阻止内联回复框关闭
+            if (event.target.closest('.inline-reply-box')) {
+                 event.stopPropagation();
+            }
+            
+            const likeButton = event.currentTarget;
+            const likeCountSpan = likeButton.querySelector('.like-count-text');
+
+            sendAjaxRequest('POST', 'like_comment.php', { topicId: topicId, commentId: commentId },
+                function(response) {
+                    if (response.success) {
+                        if (likeCountSpan) {
+                            likeCountSpan.textContent = response.likes;
+                        }
+                        if (response.isLikedByCurrentUser) {
+                            likeButton.classList.add('liked');
+                        } else {
+                            likeButton.classList.remove('liked');
+                        }
+                    } else {
+                        alert(response.message || '点赞/取消点赞失败');
+                    }
+                },
+                function() {
+                    alert('网络错误，点赞/取消点赞失败');
                 }
             );
         }
 
         // 加载话题的评论
-        function loadComments(topicId) {
+        function loadComments(topicId, sortBy = 'floor_asc') {
             const commentListEl = document.getElementById('commentList');
             const commentCountEl = document.getElementById('commentCount');
 
             commentListEl.innerHTML = '<div class="loading">正在加载评论...</div>';
 
             // 使用通用AJAX请求函数
-            sendAjaxRequest('GET', `comments.php?topicId=${topicId}`, null,
+            sendAjaxRequest('GET', `comments.php?topicId=${topicId}&sortBy=${sortBy}`, null,
                 function(response) {
                     if (response.success) {
                         const comments = response.comments || [];
+                        currentTopicCommentsData = comments; // 存储用于分页
+
+                        // 计算总评论数（包括楼中楼回复）
+                        let totalComments = 0;
+                        comments.forEach(comment => {
+                            totalComments++; // 主评论计1
+                            if (comment.replies && comment.replies.length > 0) {
+                                totalComments += comment.replies.length; // 楼中楼回复也计入
+                            }
+                        });
 
                         // 更新评论数量
-                        commentCountEl.textContent = comments.length;
+                        commentCountEl.textContent = totalComments;
 
                         // 如果没有评论
                         if (comments.length === 0) {
@@ -255,37 +333,8 @@
 
                         // 显示所有评论
                         commentListEl.innerHTML = '';
-                        comments.forEach((comment, index) => {
-                            const commentEl = document.createElement('div');
-                            commentEl.className = 'comment-item';
-
-                            // 处理评论内容，确保HTML安全并正确显示换行
-                            const safeContent = safeHtml(comment.content).replace(/\n/g, '<br>');
-
-                            // 构建评论图片HTML
-                            const commentImagesHtml = comment.images && comment.images.length > 0
-                                ? `<div class="comment-images-container">
-                                    ${comment.images.map(imgPath => `<img src="${safeHtml(imgPath)}" alt="评论图片" class="comment-image" onclick="openImageModal(this.src)">`).join('')}
-                                   </div>`
-                                : '';
-
-                            commentEl.innerHTML = `
-                                <div class="comment-header">
-                                    <span class="comment-author">${safeHtml(comment.author)}</span>
-                                    <span class="comment-time">${formatTime(comment.timestamp)}</span>
-                                </div>
-                                <div class="comment-content">${safeContent}</div>
-                                ${commentImagesHtml}
-                                <div class="comment-footer">
-                                    <button class="comment-like" onclick="likeComment('${topicId}', '${comment.id}', event)">
-                                        点赞 <span>${comment.likes || 0}</span>
-                                    </button>
-                                    <button class="comment-reply" onclick="replyToComment('${safeHtml(comment.author)}')">
-                                        回复
-                                    </button>
-                                </div>
-                            `;
-
+                        comments.forEach((comment) => {
+                            const commentEl = createCommentElement(comment, topicId);
                             commentListEl.appendChild(commentEl);
                         });
                     } else {
@@ -298,55 +347,348 @@
             );
         }
 
-        // 点赞评论
-        function likeComment(topicId, commentId, event) {
-            // 实际项目中应该发送请求到服务器更新点赞数
-            const likeBtn = event.currentTarget;
-            const likeCountEl = likeBtn.querySelector('span');
-            const currentLikes = parseInt(likeCountEl.textContent || '0');
-            likeCountEl.textContent = currentLikes + 1;
+        // 创建评论元素
+        function createCommentElement(comment, topicId) {
+            const commentEl = document.createElement('div');
+            commentEl.className = 'comment-item';
+            commentEl.setAttribute('data-comment-id', comment.id); // 添加data-id用于定位
+
+            const safeContent = safeHtml(comment.content).replace(/\n/g, '<br>');
+            const commentImagesHtml = comment.images && comment.images.length > 0
+                ? `<div class="comment-images-container">
+                    ${comment.images.map(imgPath => `<img src="${safeHtml(imgPath)}" alt="评论图片" class="comment-image" onclick="openImageModal(this.src)">`).join('')}
+                   </div>`
+                : '';
+            const commentLikeButtonClass = comment.currentUserLiked ? 'comment-like liked' : 'comment-like';
+
+            // 主评论结构
+            commentEl.innerHTML = `
+                <div class="comment-main">
+                    <div class="comment-body">
+                        <div class="comment-header">
+                            <div class="comment-author-details">
+                                <span class="comment-author">${safeHtml(comment.author)}</span>
+                                <div class="comment-floor-number">${comment.floor}楼</div>
+                            </div>
+                            <span class="comment-time">${formatTime(comment.timestamp)}</span>
+                        </div>
+                        <div class="comment-content">${safeContent}</div>
+                        ${commentImagesHtml}
+                        <div class="comment-footer">
+                            <button class="${commentLikeButtonClass}" onclick="likeComment('${topicId}', '${comment.id}', event)">
+                                <span class="like-icon">👍</span> <span class="like-count-text">${comment.likes || 0}</span>
+                            </button>
+                            <button class="comment-reply-btn" onclick="openInlineReplyBox('${comment.id}', '${comment.floor}', '${safeHtml(comment.author)}', this)">
+                                <span class="reply-icon">💬</span> 回复
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 处理楼中楼回复
+            if (comment.replies && comment.replies.length > 0) {
+                const allReplies = comment.replies;
+                const repliesContainer = document.createElement('div');
+                repliesContainer.className = 'comment-replies-container';
+                
+                const repliesHeader = document.createElement('div');
+                repliesHeader.className = 'replies-header';
+                repliesHeader.innerHTML = `
+                    <span class="replies-count">${allReplies.length} 条回复</span>
+                    <button class="toggle-replies-btn" onclick="toggleReplies(this, '${comment.id}', '${topicId}')">
+                        <span class="toggle-text">展开</span>
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                `;
+                
+                const repliesContent = document.createElement('div');
+                repliesContent.className = 'replies-content';
+                repliesContent.id = `replies-content-${comment.id}`;
+                repliesContent.style.display = 'none'; // 初始隐藏
+                
+                const repliesPagination = document.createElement('div');
+                repliesPagination.className = 'replies-pagination';
+                repliesPagination.id = `replies-pagination-${comment.id}`;
+                repliesPagination.style.display = 'none'; // 初始隐藏
+
+                repliesContainer.appendChild(repliesHeader);
+                repliesContainer.appendChild(repliesContent);
+                repliesContainer.appendChild(repliesPagination);
+                commentEl.appendChild(repliesContainer);
+            }
+
+            return commentEl;
         }
 
-        // 回复某人评论
-        function replyToComment(username) {
-            const replyContentEl = document.getElementById('reply_content');
-            replyContentEl.value = `@${username} `;
-            replyContentEl.focus();
-        }
+        // 显示楼中楼回复的特定页面
+        function displayRepliesPage(commentId, topicId, page) {
+            const mainCommentData = currentTopicCommentsData.find(c => c.id === commentId);
+            if (!mainCommentData || !mainCommentData.replies) return;
 
-        // 处理图片预览
-        document.getElementById('images').addEventListener('change', function(e) {
-            const fileCount = e.target.files.length;
-            document.getElementById('file-count').textContent =
-                fileCount > 0 ? `已选择 ${fileCount} 个文件` : '未选择文件';
+            const allReplies = mainCommentData.replies;
+            const repliesContentEl = document.getElementById(`replies-content-${commentId}`);
+            const paginationControlsEl = document.getElementById(`replies-pagination-${commentId}`);
 
-            // 简单的预览功能
-            const previewContainer = document.getElementById('preview-container');
-            previewContainer.innerHTML = '';
+            if (!repliesContentEl || !paginationControlsEl) return;
 
-            for(let i = 0; i < Math.min(fileCount, 3); i++) {
-                const file = e.target.files[i];
-                if(file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.width = '80px';
-                        img.style.height = '80px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '4px';
-                        previewContainer.appendChild(img);
+            repliesContentEl.innerHTML = ''; // 清空上一页
+            paginationControlsEl.innerHTML = ''; // 清空上一页的控件
+
+            const totalReplies = allReplies.length;
+            const totalPages = Math.ceil(totalReplies / REPLIES_PER_PAGE);
+            
+            const startIndex = (page - 1) * REPLIES_PER_PAGE;
+            const endIndex = Math.min(startIndex + REPLIES_PER_PAGE, totalReplies);
+            const currentPageReplies = allReplies.slice(startIndex, endIndex);
+
+            currentPageReplies.forEach(reply => {
+                const replyEl = document.createElement('div');
+                replyEl.className = 'reply-item';
+                
+                const replyContent = safeHtml(reply.content).replace(/\n/g, '<br>');
+                const replyImagesHtml = reply.images && reply.images.length > 0
+                    ? `<div class="comment-images-container">
+                        ${reply.images.map(imgPath => `<img src="${safeHtml(imgPath)}" alt="回复图片" class="comment-image" onclick="openImageModal(this.src)">`).join('')}
+                       </div>`
+                    : '';
+                const replyLikeButtonClass = reply.currentUserLiked ? 'comment-like liked' : 'comment-like';
+
+                let displayContent = replyContent;
+                if (reply.replyToFloor && reply.replyToAuthor) {
+                    displayContent = `<span class="reply-target">回复 ${reply.replyToFloor}楼 @${safeHtml(reply.replyToAuthor)}:</span> ${replyContent}`;
+                }
+
+                replyEl.innerHTML = `
+                    <div class="reply-header">
+                        <span class="reply-author">${safeHtml(reply.author)}</span>
+                        <span class="reply-time">${formatTime(reply.timestamp)}</span>
+                    </div>
+                    <div class="reply-content">${displayContent}</div>
+                    ${replyImagesHtml}
+                    <div class="reply-footer">
+                        <button class="${replyLikeButtonClass}" onclick="likeComment('${topicId}', '${reply.id}', event)">
+                            <span class="like-icon">👍</span> <span class="like-count-text">${reply.likes || 0}</span>
+                        </button>
+                        <button class="comment-reply-btn" onclick="openInlineReplyBox('${commentId}', '${mainCommentData.floor}', '${safeHtml(reply.author)}', this)">
+                            <span class="reply-icon">💬</span> 回复
+                        </button>
+                    </div>
+                `;
+                repliesContentEl.appendChild(replyEl);
+            });
+
+            // 渲染分页控件
+            if (totalPages > 1) {
+                if (page > 1) {
+                    const prevButton = document.createElement('button');
+                    prevButton.textContent = '上一页';
+                    prevButton.onclick = () => displayRepliesPage(commentId, topicId, page - 1);
+                    paginationControlsEl.appendChild(prevButton);
+                }
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    if (i === page) {
+                        pageButton.disabled = true;
+                        pageButton.classList.add('active');
                     }
-                    reader.readAsDataURL(file);
+                    pageButton.onclick = () => displayRepliesPage(commentId, topicId, i);
+                    paginationControlsEl.appendChild(pageButton);
+                }
+
+                if (page < totalPages) {
+                    const nextButton = document.createElement('button');
+                    nextButton.textContent = '下一页';
+                    nextButton.onclick = () => displayRepliesPage(commentId, topicId, page + 1);
+                    paginationControlsEl.appendChild(nextButton);
                 }
             }
-        });
+        }
 
-        // 处理评论提交
-        document.getElementById('replyForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // 打开回复话题的模态框
+        function openReplyModalForTopic() {
+            const modal = document.getElementById('replyModal');
+            const title = document.getElementById('replyModalTitle');
+            const content = document.getElementById('reply_content');
+            const parentIdInput = document.getElementById('parentCommentId');
+            const replyFloorInput = document.getElementById('replyToFloor');
+            const replyAuthorInput = document.getElementById('replyToAuthor');
+            const uploadSection = document.getElementById('modalUploadSection');
 
-            // 检查登录状态
+            resetReplyForm(); // 重置主模态框表单
+
+            title.textContent = '回复话题';
+            content.placeholder = '请输入您的评论内容...';
+            parentIdInput.value = ''; // 回复话题，无父评论
+            replyFloorInput.value = '0';
+            replyAuthorInput.value = '';
+            uploadSection.style.display = 'block'; // 回复话题时显示图片上传
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            content.focus();
+        }
+        
+        // 关闭回复话题的模态框
+        function closeReplyModal() {
+            const modal = document.getElementById('replyModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetReplyForm();
+        }
+
+        // 重置回复话题的模态框表单
+        function resetReplyForm() {
+            document.getElementById('reply_content').value = '';
+            document.getElementById('preview-container').innerHTML = '';
+            document.getElementById('file-count').textContent = '未选择文件';
+            document.getElementById('images').value = ''; // 清空文件输入
+            document.getElementById('anonymous').checked = false;
+            const messageEl = document.getElementById('message');
+            messageEl.style.display = 'none';
+            messageEl.className = 'message-box';
+        }
+
+        // 打开内联回复框 (用于回复评论/楼中楼)
+        function openInlineReplyBox(parentCommentId, floor, author, buttonElement) {
+            if (!checkLoginRequired()) return;
+
+            closeInlineReplyBox(); // 先关闭任何已存在的内联框
+
+            activeInlineReplyButton = buttonElement;
+            const inlineReplyBox = document.getElementById('inlineReplyBox');
+            document.getElementById('inlineParentCommentId').value = parentCommentId;
+            document.getElementById('inlineReplyToFloor').value = floor;
+            document.getElementById('inlineReplyToAuthor').value = author;
+            
+            const inlineContent = document.getElementById('inlineReplyContent');
+            inlineContent.placeholder = `回复 ${floor}楼 @${author}...`;
+            inlineContent.value = ''; // 清空先前内容
+
+            // 定位内联回复框
+            const commentItem = buttonElement.closest('.comment-item, .reply-item'); // 找到父评论或回复项
+            
+            if (commentItem) {
+                 // 追加到评论/回复项的页脚后，以获得更好的流程
+                const footer = buttonElement.closest('.comment-footer, .reply-footer');
+                if (footer) {
+                    footer.parentNode.insertBefore(inlineReplyBox, footer.nextSibling);
+                } else { // 如果未找到页脚，则追加到评论项
+                    commentItem.appendChild(inlineReplyBox);
+                }
+            } else { // 回退：如果未找到评论项，则定位在按钮附近 (不应发生)
+                const rect = buttonElement.getBoundingClientRect();
+                inlineReplyBox.style.top = (window.scrollY + rect.bottom + 5) + 'px';
+                inlineReplyBox.style.left = (window.scrollX + rect.left) + 'px';
+                document.body.appendChild(inlineReplyBox); // 如果没有更好的位置，则追加到body
+            }
+            
+            inlineReplyBox.style.display = 'block';
+            inlineContent.focus();
+            
+            // 添加事件监听器，以便在点击外部时关闭
+            // 使用setTimeout避免因打开它的点击而立即关闭
+            setTimeout(() => {
+                document.addEventListener('click', handleClickOutsideInlineReplyBox, true);
+            }, 0);
+        }
+
+        function handleClickOutsideInlineReplyBox(event) {
+            const inlineReplyBox = document.getElementById('inlineReplyBox');
+            if (inlineReplyBox.style.display === 'block' && !inlineReplyBox.contains(event.target) && activeInlineReplyButton && !activeInlineReplyButton.contains(event.target)) {
+                // 检查点击的是否是任何“回复”按钮，如果是，则不关闭，因为另一个会打开。
+                if (!event.target.classList.contains('comment-reply-btn')) {
+                    closeInlineReplyBox();
+                }
+            }
+        }
+
+        // 关闭内联回复框
+        function closeInlineReplyBox() {
+            const inlineReplyBox = document.getElementById('inlineReplyBox');
+            if (inlineReplyBox) {
+                inlineReplyBox.style.display = 'none';
+                document.getElementById('inlineReplyContent').value = '';
+                const messageEl = document.getElementById('inlineReplyMessage');
+                messageEl.style.display = 'none';
+                messageEl.className = 'message-box';
+
+                // 确保它被追加到body并隐藏，为下次使用做准备
+                // 这可以防止在重建评论列表时它变成孤立的
+                if (inlineReplyBox.parentNode !== document.body) {
+                    document.body.appendChild(inlineReplyBox);
+                }
+
+                document.removeEventListener('click', handleClickOutsideInlineReplyBox, true);
+                activeInlineReplyButton = null;
+            }
+        }
+
+        // 提交内联回复
+        function submitInlineReply() {
+            if (!isLoggedIn()) {
+                alert('请先登录后再发表评论');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const topicId = getTopicId();
+            const content = document.getElementById('inlineReplyContent').value.trim();
+            const parentCommentId = document.getElementById('inlineParentCommentId').value;
+            const replyToFloor = document.getElementById('inlineReplyToFloor').value;
+            const replyToAuthor = document.getElementById('inlineReplyToAuthor').value;
+            const messageEl = document.getElementById('inlineReplyMessage');
+
+            if (!content) {
+                showMessageElement(messageEl, '回复内容不能为空', 'error');
+                return;
+            }
+            
+            showMessageElement(messageEl, '', 'none'); // 清除先前的消息
+
+            const formData = new FormData();
+            formData.append('topicId', topicId);
+            formData.append('content', content);
+            formData.append('parentCommentId', parentCommentId);
+            formData.append('replyToFloor', replyToFloor);
+            formData.append('replyToAuthor', replyToAuthor);
+            formData.append('anonymous', '0'); // 内联回复默认不匿名，无UI选项
+
+            sendAjaxRequest('POST', 'comments.php', formData,
+                function(response) {
+                    if (response.success) {
+                        showMessageElement(messageEl, '回复成功！', 'success');
+                        setTimeout(() => {
+                            closeInlineReplyBox();
+                            loadComments(topicId, currentSortBy);
+                        }, 1000);
+                    } else {
+                        showMessageElement(messageEl, response.message || '回复失败！', 'error');
+                    }
+                },
+                function() {
+                    showMessageElement(messageEl, '网络错误！', 'error');
+                }
+            );
+        }
+        
+        // 用于在特定元素中显示消息的辅助函数
+        function showMessageElement(element, message, type) {
+            if (!element) return;
+            element.innerHTML = message;
+            if (type === 'none') {
+                element.style.display = 'none';
+            } else {
+                element.className = `message-box ${type}`;
+                element.style.display = 'block';
+            }
+        }
+
+
+        // 提交回复 (此函数现在仅用于回复话题的主模态框)
+        function submitReply() {
             if (!isLoggedIn()) {
                 alert('请先登录后再发表评论');
                 window.location.href = 'login.html';
@@ -356,7 +698,10 @@
             const topicId = getTopicId();
             const content = document.getElementById('reply_content').value.trim();
             const anonymous = document.getElementById('anonymous').checked;
-            const imagesInput = document.getElementById('images'); // 获取文件输入元素
+            const imagesInput = document.getElementById('images');
+            const parentCommentId = document.getElementById('parentCommentId').value; // 回复话题时应为空
+            const replyToFloor = document.getElementById('replyToFloor').value; // 回复话题时应为0
+            const replyToAuthor = document.getElementById('replyToAuthor').value; // 回复话题时应为空
 
             if (!content) {
                 alert('评论内容不能为空');
@@ -366,62 +711,177 @@
             const messageEl = document.getElementById('message');
             messageEl.style.display = 'none';
 
-            // 创建表单数据
-            const formData = new FormData(); // 改为 FormData 对象
+            const formData = new FormData();
             formData.append('topicId', topicId);
             formData.append('content', content);
             formData.append('anonymous', anonymous ? '1' : '0');
+            formData.append('parentCommentId', parentCommentId);
+            formData.append('replyToFloor', replyToFloor);
+            formData.append('replyToAuthor', replyToAuthor);
 
-            // 追加图片文件
             if (imagesInput.files.length > 0) {
                 for (let i = 0; i < imagesInput.files.length; i++) {
                     formData.append('images[]', imagesInput.files[i]);
                 }
             }
 
-            // 使用通用AJAX请求函数
             sendAjaxRequest('POST', 'comments.php', formData,
                 function(response) {
                     if (response.success) {
-                        // 显示成功消息
                         messageEl.innerHTML = '评论发表成功！';
                         messageEl.className = 'message-box success';
                         messageEl.style.display = 'block';
 
-                        // 清空表单
-                        document.getElementById('reply_content').value = '';
-                        document.getElementById('preview-container').innerHTML = '';
-                        document.getElementById('file-count').textContent = '未选择文件';
-                        imagesInput.value = ''; // 重置文件输入框
-
-                        // 重新加载评论
                         setTimeout(() => {
-                            messageEl.style.display = 'none';
-                            loadComments(topicId);
-                        }, 1500);
+                            closeReplyModal();
+                            loadComments(topicId, currentSortBy); // 重新加载话题评论
+                        }, 1000);
                     } else {
-                        // 显示错误消息
                         messageEl.innerHTML = response.message || '评论发表失败，请稍后再试！';
                         messageEl.className = 'message-box error';
                         messageEl.style.display = 'block';
                     }
                 },
                 function() {
-                    // 显示网络错误消息
                     messageEl.innerHTML = '网络错误，请检查您的连接！';
                     messageEl.className = 'message-box error';
                     messageEl.style.display = 'block';
                 }
             );
-        });
+        }
+
+        // 切换回复显示/隐藏
+        function toggleReplies(button, commentId, topicId) {
+            const repliesContainer = button.closest('.comment-replies-container');
+            const repliesContent = repliesContainer.querySelector(`#replies-content-${commentId}`);
+            const repliesPagination = repliesContainer.querySelector(`#replies-pagination-${commentId}`);
+            const toggleText = button.querySelector('.toggle-text');
+            const toggleIcon = button.querySelector('.toggle-icon');
+
+            const isHidden = repliesContent.style.display === 'none';
+
+            if (isHidden) {
+                // 如果是第一次展开或内容为空（例如排序后），则渲染第一页
+                if (repliesContent.innerHTML.trim() === '') {
+                     displayRepliesPage(commentId, topicId, 1);
+                }
+                repliesContent.style.display = 'block';
+                repliesPagination.style.display = 'flex'; // 分页按钮使用flex布局
+                toggleText.textContent = '收起';
+                toggleIcon.textContent = '▲';
+            } else {
+                repliesContent.style.display = 'none';
+                repliesPagination.style.display = 'none';
+                toggleText.textContent = '展开';
+                toggleIcon.textContent = '▼';
+            }
+        }
+
+        // 模态框拖拽功能
+        function initModalDrag() {
+            const modal = document.getElementById('replyModalContent');
+            const header = modal.querySelector('.reply-modal-header');
+
+            header.addEventListener('mousedown', function(e) {
+                isReplyModalDragging = true;
+                const rect = modal.getBoundingClientRect();
+                replyModalOffset.x = e.clientX - rect.left;
+                replyModalOffset.y = e.clientY - rect.top;
+                header.style.cursor = 'grabbing';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isReplyModalDragging) {
+                    const x = e.clientX - replyModalOffset.x;
+                    const y = e.clientY - replyModalOffset.y;
+                    modal.style.left = Math.max(0, Math.min(x, window.innerWidth - modal.offsetWidth)) + 'px';
+                    modal.style.top = Math.max(0, Math.min(y, window.innerHeight - modal.offsetHeight)) + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isReplyModalDragging) {
+                    isReplyModalDragging = false;
+                    header.style.cursor = 'grab';
+                }
+            });
+        }
 
         // 页面加载时执行
         document.addEventListener('DOMContentLoaded', function() {
-            // 更新导航栏用户状态
-            updateNavUserStatus();
+            // 浮动回复按钮现在应调用 openReplyModalForTopic
+            const mainFloatingReplyBtn = document.getElementById('floatingReplyBtnMainTopic');
+            if (mainFloatingReplyBtn) {
+                 mainFloatingReplyBtn.setAttribute('onclick', 'openReplyModalForTopic()');
+            }
 
-            // 加载话题详情
+            updateNavUserStatus();
             loadTopicDetail();
+            initModalDrag();
+
+            // 设置评论排序点击事件
+            document.querySelectorAll('.comment-sort-options a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // 移除之前的active类
+                    document.querySelectorAll('.comment-sort-options a').forEach(item => {
+                        item.classList.remove('active');
+                    });
+
+                    // 添加active类到当前点击项
+                    this.classList.add('active');
+
+                    // 更新排序方式并重新加载评论
+                    currentSortBy = this.getAttribute('data-sort');
+                    const topicId = getTopicId();
+                    if (topicId) {
+                        loadComments(topicId, currentSortBy);
+                    }
+                });
+            });
+
+            // 处理图片预览
+            document.getElementById('images').addEventListener('change', function(e) {
+                const fileCount = e.target.files.length;
+                document.getElementById('file-count').textContent =
+                    fileCount > 0 ? `已选择 ${fileCount} 个文件` : '未选择文件';
+
+                const previewContainer = document.getElementById('preview-container');
+                previewContainer.innerHTML = '';
+
+                for(let i = 0; i < Math.min(fileCount, 3); i++) {
+                    const file = e.target.files[i];
+                    if(file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.style.width = '80px';
+                            img.style.height = '80px';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '4px';
+                            previewContainer.appendChild(img);
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+
+            // 点击模态框外部关闭 (针对主回复模态框)
+            document.getElementById('replyModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeReplyModal();
+                }
+            });
+
+            // 确保内联回复框初始隐藏并从DOM中分离（如果是共享元素）
+            const inlineReplyBox = document.getElementById('inlineReplyBox');
+            if (inlineReplyBox && inlineReplyBox.parentNode) {
+                inlineReplyBox.parentNode.removeChild(inlineReplyBox);
+            }
+            document.body.appendChild(inlineReplyBox); // 保留在body中，更容易管理 display:none
+            inlineReplyBox.style.display = 'none';
         });
 
         // 打开图片模态框
@@ -429,8 +889,9 @@
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImageSrc');
             if (modal && modalImg) {
-                modal.style.display = "block";
+                modal.style.display = "flex"; // 使用 flex 以便 CSS 中的 align-items 和 justify-content 生效
                 modalImg.src = src;
+                document.body.style.overflow = 'hidden'; // 禁止背景滚动
             }
         }
 
@@ -439,6 +900,7 @@
             const modal = document.getElementById('imageModal');
             if (modal) {
                 modal.style.display = "none";
+                document.body.style.overflow = 'auto'; // 恢复背景滚动
             }
         }
     </script>

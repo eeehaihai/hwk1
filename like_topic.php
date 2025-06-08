@@ -13,8 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ]);
 }
 
+// 检查用户是否登录
+if (!isUserLoggedIn()) {
+    jsonResponse([
+        'success' => false,
+        'message' => '请先登录'
+    ]);
+}
+
 // 获取话题ID
 $topicId = isset($_POST['topicId']) ? $_POST['topicId'] : '';
+$currentUser = getCurrentUser();
 
 if (empty($topicId)) {
     jsonResponse([
@@ -27,26 +36,41 @@ if (empty($topicId)) {
 $topicsFile = 'topics.json';
 
 // 读取话题数据
-$topics = readJsonFile($topicsFile);
-if (empty($topics)) {
-    jsonResponse([
-        'success' => false,
-        'message' => '话题数据文件不存在或为空'
-    ]);
+$topics = readJsonFile($topicsFile, []); // 提供默认空数组
+if (empty($topics) && !is_array($topics)) { // 确保即使文件存在但内容无效时，$topics也是数组
+    $topics = [];
 }
+
 
 // 查找并更新点赞数
 $found = false;
-$likes = 0;
+$newLikesCount = 0;
+$currentUserLiked = false;
 
 foreach ($topics as &$topic) {
     if ($topic['id'] === $topicId) {
         $found = true;
-        $topic['likes']++;
-        $likes = $topic['likes'];
+        if (!isset($topic['likedBy']) || !is_array($topic['likedBy'])) {
+            $topic['likedBy'] = [];
+        }
+
+        $userIndex = array_search($currentUser, $topic['likedBy']);
+
+        if ($userIndex !== false) {
+            // 用户已点赞，取消点赞
+            array_splice($topic['likedBy'], $userIndex, 1);
+            $currentUserLiked = false;
+        } else {
+            // 用户未点赞，进行点赞
+            $topic['likedBy'][] = $currentUser;
+            $currentUserLiked = true;
+        }
+        $newLikesCount = count($topic['likedBy']);
+        // $topic['likes'] = $newLikesCount; // 如果需要，可以保留一个直接的点赞计数字段，或者在读取时派生
         break;
     }
 }
+unset($topic); // 解除引用
 
 if (!$found) {
     jsonResponse([
@@ -59,13 +83,14 @@ if (!$found) {
 if (saveJsonFile($topicsFile, $topics)) {
     jsonResponse([
         'success' => true,
-        'message' => '点赞成功',
-        'likes' => $likes
+        'message' => $currentUserLiked ? '点赞成功' : '取消点赞成功',
+        'likes' => $newLikesCount,
+        'isLikedByCurrentUser' => $currentUserLiked
     ]);
 } else {
     jsonResponse([
         'success' => false,
-        'message' => '点赞失败，无法保存数据'
+        'message' => getDetailedSaveError($topicsFile, '操作失败，无法保存数据')
     ]);
 }
 ?>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zhangh的个人主页 - 计算机科学与技术专业</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --text-color: #333;
+            --light-bg: #f9f9f9;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative; /* 为返回按钮定位 */
+        }
+
+        .profile-nav-link {
+            position: absolute;
+            top: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .profile-nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .top-left {
+            left: 20px;
+        }
+
+        .top-right {
+            right: 20px;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            margin-bottom: 1rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .university {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eee;
+            font-size: 1.4rem;
+        }
+
+        h3 {
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .contact-info {
+            list-style: none;
+        }
+
+        .contact-info li {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-info i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+            width: 20px;
+            text-align: center;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill {
+            background: #e3f2fd;
+            color: var(--primary-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .education-item, .project-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .education-item:last-child, .project-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .date {
+            color: #777;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .project-links {
+            margin-top: 0.5rem;
+        }
+
+        .project-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .project-links a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            background: #333;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .course-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .course-card {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .course-card h4 {
+            margin-bottom: 0.3rem;
+            color: var(--primary-color);
+        }
+
+        .course-card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <a href="../contact-team.html" class="profile-nav-link top-left">返回</a>
+        <a href="../home.html" class="profile-nav-link top-right">首页</a>
+        <h1>zhangh</h1>
+        <p class="subtitle">计算机科学与技术专业</p>
+        <span class="university">吉林大学 - 2023级</span>
+    </div>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <section class="card" id="contact">
+            <h2>联系方式</h2>
+            <ul class="contact-info">
+                <li><i class="fas fa-envelope"></i> zhangheng2123@mails.jlu.edu.cn</li>
+                <li><i class="fas fa-map-marker-alt"></i> 吉林省长春市</li>
+            </ul>
+        </section>
+
+        <section class="card" id="skills">
+            <h2>专业技能</h2>
+            <h3>编程语言</h3>
+            <div class="skills">
+                <span class="skill">Java</span>
+                <span class="skill">Python</span>
+                <span class="skill">C/C++</span>
+                <span class="skill">JavaScript</span>
+                <span class="skill">HTML/CSS</span>
+            </div>
+
+            <h3 style="margin-top: 1rem;">技术框架</h3>
+            <div class="skills">
+                <span class="skill">Spring Boot</span>
+                <span class="skill">Vue.js</span>
+            </div>
+
+            <h3 style="margin-top: 1rem;">其他技能</h3>
+            <div class="skills">
+                <span class="skill">MySQL</span>
+                <span class="skill">Git</span>
+                <span class="skill">Linux</span>
+                <span class="skill">Docker</span>
+            </div>
+        </section>
+
+        <section class="card" id="languages">
+            <h2>语言能力</h2>
+            <p>英语 CET-4</p>
+            <p>日语 N5</p>
+            <p>普通话 母语</p>
+        </section>
+    </aside>
+
+    <main class="main-content">
+        <section class="card" id="about">
+            <h2>个人简介</h2>
+            <p>我是吉林大学计算机科学与技术专业2023级本科生，专注于软件开发领域。在校期间系统学习数据结构、算法分析等专业课程，并通过课程项目积累了C++、Java等多语言开发经验。</p>
+            <p>参与学生管理系统等课程设计，具备良好的编程基础与团队协作能力。热衷于技术学习与实践，期望在游戏开发领域持续深耕。</p>
+        </section>
+
+        <section class="card" id="education">
+            <h2>教育背景</h2>
+            <div class="education-item">
+                <h3>吉林大学 - 计算机科学与技术</h3>
+                <p class="date">2023年9月 - 2027年6月 (预计)</p>
+                <p>主修课程: 数据结构、算法设计与分析、操作系统、数据库系统等</p>
+            </div>
+        </section>
+
+        <section class="card" id="projects">
+            <h2>课程设计项目</h2>
+            <div class="project-item">
+                <h3>学生管理系统 (C++)</h3>
+                <p class="date">2025年3月 - 2025年5月</p>
+                <p>使用 C++ 语言开发的学生管理系统，实现学生信息的添加、删除、修改和查询等功能。</p>
+                <p><strong>技术栈:</strong> C++</p>
+            </div>
+        </section>
+
+        <section class="card" id="coursework">
+            <h2>主修课程</h2>
+            <div class="course-highlights">
+                <div class="course-card">
+                    <h4>数据结构与算法</h4>
+                    <p>掌握常见数据结构设计与分析</p>
+                </div>
+                <div class="course-card">
+                    <h4>数据库系统</h4>
+                    <p>理解SQL和数据库设计原理</p>
+                </div>
+                <div class="course-card">
+                    <h4>操作系统</h4>
+                    <p>理解操作系统核心概念和原理</p>
+                </div>
+                <div class="course-card">
+                    <h4>算法设计与分析</h4>
+                    <p>掌握常见算法设计分析的思路方法</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<footer>
+    <p>&copy; 2025 张恒 - 个人主页</p>
+</footer>
+</body>
+</html>
